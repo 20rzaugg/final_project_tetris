@@ -56,14 +56,14 @@ architecture behavioral of lab8 is
 		end component ADC;
 		
 		
-		component adcpll IS
+		component pll IS
 			PORT
 			(
 				inclk0		: IN STD_LOGIC  := '0';
 				c0		: OUT STD_LOGIC ;
 				locked		: OUT STD_LOGIC 
 			);
-		END component ADCpll;
+		END component pll;
 		
 begin
 		--store response data in a variable and output to hex values.

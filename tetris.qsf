@@ -6,12 +6,11 @@ set_global_assignment -name FAMILY "MAX 10 FPGA"
 set_global_assignment -name DEVICE 10M50DAF484C7G
 set_global_assignment -name TOP_LEVEL_ENTITY "tetris"
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION "16.0.0"
-set_global_assignment -name LAST_QUARTUS_VERSION "16.0.0"
+set_global_assignment -name LAST_QUARTUS_VERSION "20.1.1 Lite Edition"
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "11:12:39 NOVEMBER 22,2022"
 set_global_assignment -name DEVICE_FILTER_PACKAGE FBGA
 set_global_assignment -name DEVICE_FILTER_PIN_COUNT 484
 set_global_assignment -name DEVICE_FILTER_SPEED_GRADE 7
-set_global_assignment -name SDC_FILE tetris.SDC
 
 #============================================================
 # CLOCK
@@ -121,3 +120,26 @@ set_location_assignment PIN_F16 -to ARDUINO_RESET_N
 # End of pin assignments by Terasic System Builder
 #============================================================
 
+
+set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
+set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
+set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
+set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
+set_global_assignment -name VHDL_FILE buzzer.vhd
+set_global_assignment -name VHDL_FILE controller.vhd
+set_global_assignment -name VHDL_FILE tetris.vhd
+set_global_assignment -name VHDL_FILE top_ADC/lab8.vhd
+set_global_assignment -name VHDL_FILE top_ADC/adcpll.vhd
+set_global_assignment -name QIP_FILE top_ADC/adcpll.qip
+set_global_assignment -name SOURCE_FILE top_ADC/adcpll.cmp
+set_global_assignment -name QSYS_FILE top_ADC/ADC.qsys
+set_global_assignment -name VHDL_FILE VGA/Vsync.vhd
+set_global_assignment -name VHDL_FILE VGA/VGApll.vhd
+set_global_assignment -name QIP_FILE VGA/VGApll.qip
+set_global_assignment -name SOURCE_FILE VGA/VGApll.cmp
+set_global_assignment -name VHDL_FILE VGA/lab7.vhd
+set_global_assignment -name VHDL_FILE VGA/Hsync.vhd
+set_global_assignment -name VHDL_FILE VGA/flags.vhd
+set_global_assignment -name VHDL_FILE rng.vhd
+set_global_assignment -name VERILOG_FILE guide.v
+set_global_assignment -name SDC_FILE tetris.SDC
