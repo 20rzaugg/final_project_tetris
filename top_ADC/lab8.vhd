@@ -7,12 +7,6 @@ entity lab8 is
 	port (
 		ADC_CLK_10 : in std_logic;
 		KEY : in std_logic_vector(1 downto 0);
-		HEX0 : out unsigned(7 downto 0);
-		HEX1 : out unsigned(7 downto 0);
-		HEX2 : out unsigned(7 downto 0);
-		HEX3 : out unsigned(7 downto 0);
-		HEX4 : out unsigned(7 downto 0);
-		HEX5 : out unsigned(7 downto 0);
 		ARDUINO_IO : inout std_logic_vector(15 downto 0); --input the continuous voltage data on the first pin and command channel.
 	   ARDUINO_RESET_N : inout std_logic	
 	);

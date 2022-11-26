@@ -54,6 +54,7 @@ architecture behavioral of lab7 is
 		clk : in std_logic;
 		change : in std_logic := '1';
 		rst_l : in std_logic := '1';
+		start : in std_logic := '1';
 		Hpos : in unsigned(11 downto 0);
 		Vpos : in unsigned(11 downto 0);
 		Red : out std_logic_vector(3 downto 0);
@@ -67,7 +68,7 @@ signal pclk : std_logic; --pixel clock, 25Mhz
 signal Vpos, Hpos : unsigned(11 downto 0);
 signal Reg_Red, Reg_Green, Reg_Blue : std_logic_vector(3 downto 0);
 signal Reg_VGA_HS, Reg_VGA_VS : std_logic;
-signal rand : std_logic_vector(1 downto 0);
+--signal rand : std_logic_vector(1 downto 0);
 
 
 
@@ -100,6 +101,7 @@ begin
 			clk => pclk,
 			change => key(1),
 			rst_l => key(0),
+			start => key(1),
 			Hpos => Hpos,
 			Vpos => Vpos,
 			Red => Reg_Red,
