@@ -8,7 +8,8 @@ entity lab8 is
 		ADC_CLK_10 : in std_logic;
 		KEY : in std_logic_vector(1 downto 0);
 		ARDUINO_IO : inout std_logic_vector(15 downto 0); --input the continuous voltage data on the first pin and command channel.
-	   ARDUINO_RESET_N : inout std_logic	
+	   ARDUINO_RESET_N : inout std_logic
+		BoxPosition : out std_logic_vector(11 downto 0);
 	);
 	
 end entity lab8;
@@ -61,12 +62,7 @@ architecture behavioral of lab8 is
 		
 begin
 		--store response data in a variable and output to hex values.
-			HEX0 <= sev_seg(to_integer(unsigned(clocked_out(3 downto 0))));
-			HEX1 <= sev_seg(to_integer(unsigned(clocked_out(7 downto 4))));
-			HEX2 <= sev_seg(to_integer(unsigned(clocked_out(11 downto 8))));
-			HEX3 <= X"FF";
-			HEX4 <= X"FF";
-			HEX5 <= X"FF";
+			BoxPosition <= clocked_out;
 		
 		u0	: component ADC
 		port map (
@@ -99,7 +95,7 @@ begin
 		if KEY(0) = '0' then
 				count <= X"0000000";
 		elsif rising_edge(ADC_CLK_10) then
-			if count <= X"0989680" then
+			if count = X"0989680" then
 				count <= X"0000000";
 				if response_valid = '1' then
 					clocked_out <= ADC_output;
