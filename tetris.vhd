@@ -7,6 +7,7 @@ entity tetris is
 		
 	port (
 		MAX10_CLK1_50 : in std_logic;
+		ADC_CLK_10 : in std_logic;
 		KEY : in std_logic_vector(1 downto 0); --rst_l --add
 		VGA_B : out std_logic_vector(3 downto 0);
 		VGA_G : out std_logic_vector(3 downto 0);
@@ -37,6 +38,11 @@ architecture behavioral of tetris is
 	
 		PORT
 	(
+		ADC_CLK_10 : in std_logic;
+		KEY : in std_logic_vector(1 downto 0);
+		ARDUINO_IO : inout std_logic_vector(15 downto 0); --input the continuous voltage data on the first pin and command channel.
+	   ARDUINO_RESET_N : inout std_logic
+		BoxPosition : out std_logic_vector(11 downto 0);
 	);
 	end component;
 	
@@ -58,6 +64,7 @@ architecture behavioral of tetris is
 	END component;
 	
 	signal rand : std_logic_vector(1 downto 0);
+	signal BoxPosition : std_logic_vector(11 downto 0);
 	--signal rst : std_logic;
 	--signal clk5, clk12 :std_logic;
 	--signal fifo_re, fifo_we, fifo_mt : std_logic ;  --?????????????????????? consider not initializing this line
@@ -74,29 +81,30 @@ begin
 		u1_controller : controller
 			port map (
 				MAX10_CLK1_50 => MAX10_CLK1_50,
+				BoxPosition => BoxPosition,
 				rand => rand,
 				);
 				
-		u2_lab8 : lab8 --ADC
+		u2_lab8 : lab8 --ADC									--COMPLETE
 			port map (
+				ADC_CLK_10 => ADC_CLK_10,
+				KEY => KEY,
+				ARDUINO_IO => ARDUINO_IO,
+				ARDUINO_RESET_N => ARDUINO_RESET_N,
+				BoxPosition => BoxPosition
 				);
 				
 		u3_lab7 : lab7 --VGA
 			port map (
 			
-				rand => rand
 				);
 				
-		u4_rng : rng 
+		u4_rng : rng 											--COMPLETE
 			port map (
 				MAX10_CLK1_50 => MAX10_CLK1_50,
 				KEY => KEY,
 				rand => rand
 				);
 				
-		
-	
-	
-	
 	
 end architecture behavioral;
