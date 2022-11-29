@@ -26,6 +26,7 @@ architecture behavioral of controller is
 	signal next_state : state_type;
 	signal row, col : unsigned(3 downto 0);
 	signal timer : integer;
+	signal checkArray : boolean := False;
 
 begin
 
@@ -41,30 +42,81 @@ begin
 		--col logic
 		case BoxPosition is
 			when => >X"1C7"
-				col <= X"0";
+				if blockArray(X"0", row) = X"0" then
+					col <= X"0";
+				else
+					col <= col;
+				end if;
 			when => <=X"1C7" and >X"38E"
-				col <= X"1";
+				if blockArray(X"1", row) = X"0" then
+					col <= X"1";
+				else
+					col <= col;
+				end if;
 			when => <=X"38E" and >X"555"
-				col <= X"2";
+				if blockArray(X"2", row) = X"0" then
+					col <= X"2";
+				else
+					col <= col;
+				end if;
 			when => <=X"555" and >X"71C"
-				col <= X"3";
+				if blockArray(X"3", row) = X"0" then
+					col <= X"3";
+				else
+					col <= col;
+				end if;
 			when => <=X"71C" and >X"8E3"
-				col <= X"4";
+				if blockArray(X"4", row) = X"0" then
+					col <= X"4";
+				else
+					col <= col;
+				end if;
 			when => <=X"8E3" and >X"AAA"
-				col <= X"5";
+				if blockArray(X"5", row) = X"0" then
+					col <= X"5";
+				else
+					col <= col;
+				end if;
 			when => <=X"AAA" and >X"C71"
-				col <= X"6";
+				if blockArray(X"6", row) = X"0" then
+					col <= X"6";
+				else
+					col <= col;
+				end if;
 			when => <=X"C71" and >X"E38"
-				col <= X"7";
+				if blockArray(X"7", row) = X"0" then
+					col <= X"7";
+				else
+					col <= col;
+				end if;
 			when => <=X"E38" and >=X"FFF"
-				col <= X"8";
+				if blockArray(X"8", row) = X"0" then
+					col <= X"8";
+				else
+					col <= col;
+				end if;
 		end case;
 		
 		--row logic
 		if timer = 25000000 then
 			row <= row - X"1";
-			if row = X"0" then
-				blockArray
+			if row = X"0" or blockArray(col, row - 1) != X"0" then --0 means black, if not black it is filled.
+				blockArray(col, row) <= falling_block;
+				checkArray <= true;
+				falling_block <= rand;
+			end if;
+		end if;
+		
+		--array Management
+		if checkArray = true then
+			for(int i = 0; i < 8; i++) --check rows
+				for(int j = 0; j < 11; j++)--check cols
+					if blockArray(i,j) != X"0" and blockArray(i,j) = blockArray(i + 1, j) and blockArray(i,j) = blockArray(i + 2, j) then
+						score <= score + X"3";
+					
+					
+	
+
 			
 	
 	end process;

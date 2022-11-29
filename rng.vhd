@@ -2,6 +2,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+--consider only looking at least significant 2 bits instead of modulo.
+--Do not modulo. Do not divide.
+
 entity randGenR is
 		
 	port (
@@ -24,7 +27,7 @@ begin
 
 		bitt <= lfsr(11) xor lfsr(10) xor lfsr(9) xor lfsr(3);
 		rand <= randnum;
-		randnum <= lsfr mod 4;
+		randnum <= lsfr(1 downto 0);
 	
 	
 	process (MAX10_CLK1_50, KEY) 
