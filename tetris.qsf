@@ -143,3 +143,4 @@ set_global_assignment -name VHDL_FILE VGA/flags.vhd
 set_global_assignment -name VHDL_FILE rng.vhd
 set_global_assignment -name VERILOG_FILE guide.v
 set_global_assignment -name SDC_FILE tetris.SDC
+set_global_assignment -name QIP_FILE divider.qip
