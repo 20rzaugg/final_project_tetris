@@ -1,2 +1,13 @@
 **.bak
-
+**.rdb
+**.hdb
+**.flock
+**.smart_action.txt
+**.ddb
+**.rpt
+**.smsg
+**.summary
+**.sopcinfo
+**.qmsg
+db/ip/*
+**.db_info

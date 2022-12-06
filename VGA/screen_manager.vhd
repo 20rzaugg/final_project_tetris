@@ -2,21 +2,21 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.std_logic_unsigned.all;
+library tetris_types;
+use tetris_types.all;
 
 entity screen_manager is
 		
 	port (
 
-        MAX10_CLK1_50 : in std_logic;
+      MAX10_CLK1_50 : in std_logic;
 		Blue : out std_logic_vector(3 downto 0);
 		Green : out std_logic_vector(3 downto 0);
 		Red : out std_logic_vector(3 downto 0);
 		VGA_HS : out std_logic;
-		VGA_VS : out std_logic
-
+		VGA_VS : out std_logic;
 		rst_l : in std_logic := '1';
-		
-      blockArray : in array(0 to 8, 0 to 11) of unsigned(2 downto 0);
+      blockArray : in tetris_block_array;
 		falling_block : in unsigned(2 downto 0);
 		falling_block_col : in unsigned(3 downto 0);
 		falling_block_row : in unsigned(3 downto 0);
@@ -54,14 +54,16 @@ architecture behavioral of screen_manager is
         clk : in std_logic;
         rst_l : in std_logic;
         score : in unsigned(19 downto 0);
-        score_digits : out array(0 to 5) of unsigned(3 downto 0)
-    )
-
+        score_digits : out score_digits_array
+    );
+	end component;
+	
 type colorme is array(0 to 5) of std_logic_vector(11 downto 0); --add more colors if necessary
 signal display : colorme := (X"000", X"FFF", X"F00", X"00F", X"080", X"FF0");
 
 type colors is (Black, White, cRed, cBlue, cGreen, Yellow);
-signal color, next_color : colors;
+signal color : colors;
+signal next_color : colors;
 signal boxColor : colors;
 signal color_index, next_color_index : unsigned(11 downto 0);
 
@@ -69,8 +71,9 @@ signal Hpos : unsigned(11 downto 0);
 signal Vpos : unsigned(11 downto 0);
 signal pclk : std_logic; --pixel clock, 25Mhz
 
-signal score_digits : array(0 to 5) of unsigned(3 downto 0);
-signal x, y : unsigned(11 downto 0);
+signal score_digits : score_digits_array;
+signal x : unsigned(11 downto 0);
+signal y : unsigned(11 downto 0);
 
 
 type numberfont is array(0 to 9, 0 to 11, 0 to 16) of std_logic;
@@ -276,9 +279,10 @@ signal numbers : numberfont := (
         ('0','0','0','1','1','1','1','1','0','0','0','0')
     )
 );
-
-signal col_positions : array(0 to 8) of unsigned(11 downto 0) := (X"0B2", X"0D2", X"0F2", X"112", X"132", X"152", X"172", X"192", X"1B2");
-signal row_positions : array(0 to 13) of unsigned(11 downto 0) := (X"1B0", X"190", X"170", X"150", X"130", X"110", X"0F0", X"0D0", X"0B0", X"090", X"070", X"050", X"030", X"010");
+type col_positions_type is array(0 to 8) of unsigned(11 downto 0);
+signal col_positions : col_positions_type := (X"0B2", X"0D2", X"0F2", X"112", X"132", X"152", X"172", X"192", X"1B2");
+type row_positions_type is array(0 to 13) of unsigned(11 downto 0);
+signal row_positions : row_positions_type := (X"1B0", X"190", X"170", X"150", X"130", X"110", X"0F0", X"0D0", X"0B0", X"090", X"070", X"050", X"030", X"010");
 
 begin			
 	
@@ -357,49 +361,64 @@ begin
         variable lh_X : integer := 0;
         variable lh_Y : integer := 0;
     begin
-		if Vpos < X"02D" then
+		if (Vpos < X"02D") then
 			color <= Black;
 		else
-			if Hpos < X"09F" then
+			if (Hpos < X"09F") then
 				color <= Black;
 			else
 				color <= Black;
 				--1px U shape
-				if x = 176 and y >= 16 and y <= 463 
+				if (x = 176 and y >= 16 and y <= 463) then
 					color <= White;
-				if x = 464 and y >= 16 and y <= 463 
+				end if;
+				if (x = 464 and y >= 16 and y <= 463) then	
 					color <= White;
-				if y = 464 and x >= 176 and x <= 464
+				end if;
+				if (y = 464 and x >= 176 and x <= 464) then
 					color <= White;
+				end if;
 				--hundred_thousands digit
-				if y >= 231 and y <= 248 and x >= 509 and x <= 518
-					if numbers(hundred_thousands, y-231, x-509) = '1'
+				if (y >= 231 and y <= 248 and x >= 509 and x <= 518) then
+					if (numbers(score_digits(0), y-231, x-509) = '1') then
 						color <= White;
+					end if;
+				end if;
 				--ten_thousands digit
-				if y >= 231 and y <= 248 and x >= 522 and x <= 534
-					if numbers(ten_thousands, y-231, x-522) = '1'
+				if (y >= 231 and y <= 248 and x >= 522 and x <= 534) then
+					if (numbers(score_digits(1), y-231, x-522) = '1') then
 						color <= White;
+					end if;
+				end if;
 				--thousands digit
-				if y >= 231 and y <= 248 and x >= 538 and x <= 550
-					if numbers(thousands, y-231, x-538) = '1'
+				if (y >= 231 and y <= 248 and x >= 538 and x <= 550) then
+					if numbers(score_digits(2), y-231, x-538) = '1' then
 						color <= White;
+					end if;
+				end if;
 				--hundreds digit
-				if y >= 231 and y <= 248 and x >= 554 and x <= 566
-					if numbers(hundreds, y-231, x-554) = '1'
+				if (y >= 231 and y <= 248 and x >= 554 and x <= 566) then
+					if (numbers(score_digits(3), y-231, x-554) = '1') then
 						color <= White;
+					end if;
+				end if;
 				--tens digit
-				if y >= 231 and y <= 248 and x >= 570 and x <= 582
-					if numbers(tens, y-231, x-570) = '1'
+				if (y >= 231 and y <= 248 and x >= 570 and x <= 582) then
+					if (numbers(score_digits(4), y-231, x-570) = '1') then
 						color <= White;
+					end if;
+				end if;
 				--ones digit
-				if y >= 231 and y <= 248 and x >= 586 and x <= 598
-					if numbers(ones, y-231, x-586) = '1'
+				if (y >= 231 and y <= 248 and x >= 586 and x <= 598) then
+					if (numbers(score_digits(5), y-231, x-586) = '1') then
 						color <= White;
+					end if;
+				end if;
 
                 --paint blocks in block array
                 for i in 0 to 8 loop
                     for j in 0 to 11 loop
-                        if y >= row_positions(j) and y <= row_positions(j)+X"1D" and x >= col_positions(i) and x <= col_positions(i)+X"1D"
+                        if(y >= row_positions(j) and y <= row_positions(j)+X"1D" and x >= col_positions(i) and x <= col_positions(i)+X"1D") then
                             case blockArray(i, j) is
                                 when X"0" =>
                                     color <= Black;
@@ -418,7 +437,7 @@ begin
                     lh_Y := lh_Y + 16;
                 end loop;
                 --paint falling block
-                if y >= row_positions(falling_block_row) and y <= row_positions(falling_block_row)+X"1D" and x >= col_positions(falling_block_col) and x <= col_positions(falling_block_col)+X"1D"
+                if(y >= row_positions(falling_block_row) and y <= row_positions(falling_block_row)+X"1D" and x >= col_positions(falling_block_col) and x <= col_positions(falling_block_col)+X"1D") then
                     case falling_block is
                         when X"0" =>
                             color <= Black;

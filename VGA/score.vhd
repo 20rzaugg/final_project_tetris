@@ -1,14 +1,16 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+library tetris_types;
+use tetris_types.all;
 
-module score is 
+entity score is 
     port (
         clk, rst_l : in std_logic;
         score : in unsigned(20 downto 0);
-        score_digits : out array(0 to 5) of unsigned(3 downto 0);
-    )
-end module;
+        score_digits : out score_digits_array
+    );
+end entity score;
 
 architecture behavioral of score is
 
@@ -18,7 +20,7 @@ architecture behavioral of score is
         quotient : OUT STD_LOGIC_VECTOR (19 DOWNTO 0);
         remain : OUT STD_LOGIC_VECTOR (19 DOWNTO 0)
     );
-    END component;
+    end component;
 
     type state is (delay, set);
     signal state, nextstate : state := delay;
@@ -32,11 +34,11 @@ begin
 
     --instantiate divider module
     U1_divider : divider port map (
-        denom => denominator_reg;
-        numer => score_reg;
-        quotient => quotient_reg;
-        remain => remainder_reg;
-    )
+        denom => denominator_reg,
+        numer => score_reg,
+        quotient => quotient_reg,
+        remain => remainder_reg
+    );
     
     --state machine, bring the future to the present
     process(clk, rst_l)
@@ -53,7 +55,7 @@ begin
     begin
         case state is
             when delay =>
-                if(digit < X"5")
+                if(digit < X"5") then
                     nextstate <= set;
                 else
                     nextstate <= delay;
@@ -96,7 +98,7 @@ begin
                         --save the tens digit and ones digit
                         score_digits(4) <= unsigned(quotient_reg(3 downto 0));
                         score_digits(5) <= unsigned(remainder_reg(3 downto 0));
-                        score_reg <= others('0');
+                        score_reg <= X"00000";
                         denominator_reg <= X"00001"; --1
                         digit <= digit + X"1";
                         nextstate <= delay;
