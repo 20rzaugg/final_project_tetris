@@ -16,7 +16,7 @@ entity screen_manager is
 
 		rst_l : in std_logic := '1';
 		
-        blockArray : in array(0 to 8, 0 to 11) of unsigned(2 downto 0);
+      blockArray : in array(0 to 8, 0 to 11) of unsigned(2 downto 0);
 		falling_block : in unsigned(2 downto 0);
 		falling_block_col : in unsigned(3 downto 0);
 		falling_block_row : in unsigned(3 downto 0);

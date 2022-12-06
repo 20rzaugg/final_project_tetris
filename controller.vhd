@@ -8,12 +8,12 @@ entity controller is
 		MAX10_CLK1_50 : in std_logic;
 		Key : in std_logic(1 downto 0);
 		BoxPostition : in std_logic_vector(11 downto 0);
-		blockArray : out array(0 to 8, 0 to 11) of unsigned(2 downto 0);
+		blockArray : out array (0 to 8, 0 to 11) of unsigned(2 downto 0);
 		falling_block : out unsigned(2 downto 0); -- color of falling block, 0 is no block
 		falling_block_col : out unsigned(3 downto 0);
 		falling_block_row : out unsigned(3 downto 0);
 		score : out unsigned(19 downto 0);
-		rand : in std_logic_vector(1 downto 0);
+		rand : in std_logic_vector(1 downto 0)
 	);
 	
 end entity controller;
@@ -21,8 +21,8 @@ end entity controller;
 architecture behavioral of controller is 
 	
 	--STATE SIGNALS
-	type state_type is (play, game_over, initial);
-	signal cur_state, next_state : state_type;
+	type statetype is (play, game_over, initial);
+	signal cur_state, next_state : statetype;
 	--Other Signals
 	signal row, col, next_row, next_col : unsigned(3 downto 0);
 	signal timer : integer;
