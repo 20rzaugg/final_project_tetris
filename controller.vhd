@@ -8,9 +8,9 @@ entity controller is
 		
 	port (
 		MAX10_CLK1_50 : in std_logic;
-		Key : in std_logic(1 downto 0);
-		BoxPostition : in std_logic_vector(11 downto 0);
-		blockArray : out tetris_block_array;
+		Key : in std_logic_vector(1 downto 0);
+		BoxPosition : in std_logic_vector(11 downto 0);
+		blockArray : buffer tetris_block_array;
 		falling_block : out unsigned(2 downto 0); -- color of falling block, 0 is no block
 		falling_block_col : out unsigned(3 downto 0);
 		falling_block_row : out unsigned(3 downto 0);
@@ -77,11 +77,11 @@ begin
 			when initial =>
 				for i in 0 to 8 loop
 					for j in 0 to 11 loop
-						next_blockArray(i,j) <= X"0";
+						next_bArray(i,j) <= b"000";
 					end loop;
 				end loop;
 				
-				next_score <= 0;
+				next_scorn <= X"00000";
 				
 				if key(1) = '0' then
 					next_state <= play;
@@ -92,7 +92,7 @@ begin
 			
 				--initialize falling block
 				if createBlock = true then
-					next_fBlock <= rand;
+					next_fBlock <= b"0"&unsigned(rand);
 					next_row <= X"D";
 					next_col <= X"4";
 					next_createBlock <= false;
@@ -102,7 +102,7 @@ begin
 				--case BoxPosition is
 					--when => >X"1C7"
 					if BoxPosition > X"1C7" then
-						if Barray(X"0", row) = X"0" then
+						if Barray(0, to_integer(row)) = X"0" then
 							next_col <= X"0";
 						else
 							next_col <= col;
@@ -110,7 +110,7 @@ begin
 					end if;
 					--when => <=X"1C7" and >X"38E"
 					if BoxPosition <= X"1C7" and BoxPosition > X"38E" then
-						if Barray(X"1", row) = X"0" then
+						if Barray(1, to_integer(row)) = X"0" then
 							next_col <= X"1";
 						else
 							next_col <= col;
@@ -118,7 +118,7 @@ begin
 					end if;
 					--when => <=X"38E" and >X"555"
 					if BoxPosition <= X"38E" and BoxPosition > X"555" then
-						if Barray(X"2", row) = X"0" then
+						if Barray(2, to_integer(row)) = X"0" then
 							next_col <= X"2";
 						else
 							next_col <= col;
@@ -126,7 +126,7 @@ begin
 					end if;
 					--when => <=X"555" and >X"71C"
 					if BoxPosition <= X"555" and BoxPosition > X"71C" then
-						if Barray(X"3", row) = X"0" then
+						if Barray(3, to_integer(row)) = X"0" then
 							next_col <= X"3";
 						else
 							next_col <= col;
@@ -134,7 +134,7 @@ begin
 					end if;
 					--when => <=X"71C" and >X"8E3"
 					if BoxPosition <= X"71C" and BoxPosition > X"8E3" then
-						if Barray(X"4", row) = X"0" then
+						if Barray(4, to_integer(row)) = X"0" then
 							next_col <= X"4";
 						else
 							next_col <= col;
@@ -142,7 +142,7 @@ begin
 					end if;
 					--when => <=X"8E3" and >X"AAA"
 					if BoxPosition <= X"8E3" and BoxPosition > X"AAA" then
-						if Barray(X"5", row) = X"0" then
+						if Barray(5, to_integer(row)) = X"0" then
 							next_col <= X"5";
 						else
 							next_col <= col;
@@ -150,7 +150,7 @@ begin
 					end if;
 					--when => <=X"AAA" and >X"C71"
 					if BoxPosition <= X"AAA" and BoxPosition > X"C71" then
-						if Barray(X"6", row) = X"0" then
+						if Barray(6, to_integer(row)) = X"0" then
 							next_col <= X"6";
 						else
 							next_col <= col;
@@ -158,7 +158,7 @@ begin
 					end if;
 					--when => <=X"C71" and >X"E38"
 					if BoxPosition <= X"C71" and BoxPosition > X"E38" then
-						if Barray(X"7", row) = X"0" then
+						if Barray(7, to_integer(row)) = X"0" then
 							next_col <= X"7";
 						else
 							next_col <= col;
@@ -166,7 +166,7 @@ begin
 					end if;
 					--when => <=X"E38" and >=X"FFF"
 					if BoxPosition <= X"E38" and BoxPosition >= X"FFF" then
-						if Barray(X"8", row) = X"0" then
+						if Barray(8, to_integer(row)) = X"0" then
 							next_col <= X"8";
 						else
 							next_col <= col;
@@ -178,12 +178,12 @@ begin
 				if (timer = 25000000) then
 					next_row <= row - X"1";
 					timer <= 0;
-					if (row = X"0" or Barray(col, row - 1) /= X"0") then --0 means black, if not black it is filled.
-						next_BArray(col, row) <= fBlock;
+					if (row = X"0" or Barray(to_integer(col), to_integer(row - X"1")) /= X"0") then --0 means black, if not black it is filled.
+						next_BArray(to_integer(col), to_integer(row)) <= fBlock;
 						next_checkArray <= true;
 						next_createBlock <= true;
 					end if;
-					if Barray(col, row) = X"C" then --check the array if at 12, switch state to game over.
+					if Barray(to_integer(col), to_integer(row)) = X"C" then --check the array if at 12, switch state to game over.
 						next_state <= game_over;
 					end if;
 				else
@@ -212,8 +212,8 @@ begin
 								end if;
 							end if;
 							if i > 1 and blockArray(i,j) /= X"0" and blockArray(i - 1 ,j) = X"0" then
-								next_blockArray(i - 1, j) <= blockArray(i,j);
-								next_blockArray(i,j) <= X"0";
+								next_bArray(i - 1, j) <= blockArray(i,j);
+								next_bArray(i,j) <= X"0";
 							end if;
 						end if;
 						end loop;

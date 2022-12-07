@@ -12,3 +12,6 @@
 db/ip/*
 **.db_info
 **.qws
+**.cnf.cdb
+**.cbx.xml
+**.hif

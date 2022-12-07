@@ -22,8 +22,8 @@ architecture behavioral of score is
     );
     end component;
 
-    type state is (delay, set);
-    signal state, nextstate : state := delay;
+    type state_type is (delay, set);
+    signal state, nextstate : state_type := delay;
     signal score_reg : std_logic_vector(19 downto 0);
     signal denominator_reg : std_logic_vector(19 downto 0) := X"00001";
     signal quotient_reg : std_logic_vector(19 downto 0);

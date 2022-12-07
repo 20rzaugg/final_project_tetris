@@ -379,38 +379,38 @@ begin
 					color <= White;
 				end if;
 				--hundred_thousands digit
-				if (y >= 231 and y <= 248 and x >= 509 and x <= 518) then
-					if (numbers(score_digits(0), y-231, x-509) = '1') then
+				if (y >= 231 and y <= 248 and x >= 506 and x <= 518) then
+					if (numbers(to_integer(score_digits(0)), to_integer(y-X"0E7"), to_integer(x-X"1FA")) = '1') then
 						color <= White;
 					end if;
 				end if;
 				--ten_thousands digit
 				if (y >= 231 and y <= 248 and x >= 522 and x <= 534) then
-					if (numbers(score_digits(1), y-231, x-522) = '1') then
+					if (numbers(to_integer(score_digits(1)), to_integer(y-X"0E7"), to_integer(x-X"20A")) = '1') then
 						color <= White;
 					end if;
 				end if;
 				--thousands digit
 				if (y >= 231 and y <= 248 and x >= 538 and x <= 550) then
-					if numbers(score_digits(2), y-231, x-538) = '1' then
+					if numbers(to_integer(score_digits(2)), to_integer(y-X"0E7"), to_integer(x-X"21A")) = '1' then
 						color <= White;
 					end if;
 				end if;
 				--hundreds digit
 				if (y >= 231 and y <= 248 and x >= 554 and x <= 566) then
-					if (numbers(score_digits(3), y-231, x-554) = '1') then
+					if (numbers(to_integer(score_digits(3)), to_integer(y-X"0E7"), to_integer(x-X"22A")) = '1') then
 						color <= White;
 					end if;
 				end if;
 				--tens digit
 				if (y >= 231 and y <= 248 and x >= 570 and x <= 582) then
-					if (numbers(score_digits(4), y-231, x-570) = '1') then
+					if (numbers(to_integer(score_digits(4)), to_integer(y-X"0E7"), to_integer(x-X"23A")) = '1') then
 						color <= White;
 					end if;
 				end if;
 				--ones digit
 				if (y >= 231 and y <= 248 and x >= 586 and x <= 598) then
-					if (numbers(score_digits(5), y-231, x-586) = '1') then
+					if (numbers(to_integer(score_digits(5)), to_integer(y-X"0E7"), to_integer(x-X"24A")) = '1') then
 						color <= White;
 					end if;
 				end if;
@@ -437,7 +437,7 @@ begin
                     lh_Y := lh_Y + 16;
                 end loop;
                 --paint falling block
-                if(y >= row_positions(falling_block_row) and y <= row_positions(falling_block_row)+X"1D" and x >= col_positions(falling_block_col) and x <= col_positions(falling_block_col)+X"1D") then
+                if(y >= row_positions(to_integer(falling_block_row)) and y <= row_positions(to_integer(falling_block_row))+X"1D" and x >= col_positions(to_integer(falling_block_col)) and x <= col_positions(to_integer(falling_block_col))+X"1D") then
                     case falling_block is
                         when X"0" =>
                             color <= Black;

@@ -82,7 +82,7 @@ begin
 			response_endofpacket   => open--response_endofpacket--CONNECTED_TO_response_endofpacket    --               .endofpacket
 		);
 		
-		u1_pll : component pll
+		u1_pll : component adcpll
 		port map (
 			inclk0 =>	ADC_CLK_10,
 			c0 =>			pclk,

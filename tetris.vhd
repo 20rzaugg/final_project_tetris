@@ -37,8 +37,8 @@ architecture behavioral of tetris is
 	component controller port (
 		MAX10_CLK1_50 : in std_logic;
 		Key : in std_logic_vector(1 downto 0);
-		BoxPostition : in std_logic_vector(11 downto 0);
-		blockArray : tetris_block_array;
+		BoxPosition : in std_logic_vector(11 downto 0);
+		blockArray : buffer tetris_block_array;
 		falling_block : out unsigned(2 downto 0); -- color of falling block, 0 is no block
 		falling_block_col : out unsigned(3 downto 0);
 		falling_block_row : out unsigned(3 downto 0);
@@ -109,7 +109,7 @@ begin
 		u1_controller : controller port map (
 			MAX10_CLK1_50 => MAX10_CLK1_50,
 			Key => key,
-			BoxPostition => BoxPosition,
+			BoxPosition => BoxPosition,
 			blockArray => blockArray,
 			falling_block => falling_block,
 			falling_block_col => falling_block_col,

@@ -27,7 +27,7 @@ begin
 
 		bitt <= lfsr(11) xor lfsr(10) xor lfsr(9) xor lfsr(3);
 		rand <= randnum;
-		randnum <= lsfr(1 downto 0);
+		randnum <= std_logic_vector(lfsr(1 downto 0));
 	
 	
 	process (MAX10_CLK1_50, KEY) 
