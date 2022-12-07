@@ -10,7 +10,7 @@ entity randGenR is
 	port (
 		MAX10_CLK1_50 : in std_logic;
 		KEY : in std_logic_vector(1 downto 0);
-		rand : out std_logic_vector(1 downto 0);
+		rand : out std_logic_vector(1 downto 0)
 	);
 	
 end entity randGenR;
@@ -37,14 +37,15 @@ begin
 
 			timer <= 0;
 			randnum <= b"00";
-			
-		elsif rising_edge(MAX10_CLK1_50) then
-			if timer = 25000000;
+		end if;	
+		if rising_edge(MAX10_CLK1_50) and Key(0) /= '0' then
+		
+			if timer = 25000000 then
 				lfsr <= lfsr(10 downto 0) & bitt;
+				timer <= 0;
 			else
 				timer <= timer + 1;
 			end if;
-		
 		end if;
 	end process;
 

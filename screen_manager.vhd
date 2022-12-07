@@ -27,7 +27,7 @@ end entity screen_manager;
 	
 architecture behavioral of screen_manager is
 
-    component pll is port (
+    component vgapll is port (
         areset : in std_logic := '0';
         inclk0 : in std_logic := '0';
         c0 : in std_logic 

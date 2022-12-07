@@ -7,12 +7,13 @@ entity singer is port (
 	rst_l : in std_logic;
 	sw : in std_logic_vector(3 downto 0);
 	sound_selector : unsigned(2 downto 0); --0 = silence, 1 = click1, 2 = click2, 3 = game start, 4 = game over
-	buzzer : out std_logic;
-)
+	buzzer : out std_logic
+);
 end entity;
 
 architecture behavioral of singer is
-	signal notes : array(0 to 87) of unsigned(19 downto 0) := (
+	type notes_array is array(0 to 87) of unsigned(19 downto 0);
+	signal notes : notes_array := (
 		X"DDF23", --  0 - A0
 		X"D1747", --  1 - A#0
 		X"C5B78", --  2 - B0
@@ -105,4 +106,12 @@ architecture behavioral of singer is
 
 	signal frequency_counter : unsigned(19 downto 0) := (others => '0');
 	signal volumePWM_counter : unsigned(3 downto 0) := (others => '0');
+	
+begin
+
+	process(clk) begin
+		buzzer <= not(buzzer);
+	end process;
+
+end architecture;
 	
