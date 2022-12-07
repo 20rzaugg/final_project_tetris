@@ -1,8 +1,8 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-library tetris_types;
-use tetris_types.all;
+library work;
+use work.tetris_types.all;
 
 entity score is 
     port (

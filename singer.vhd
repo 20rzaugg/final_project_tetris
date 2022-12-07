@@ -109,8 +109,8 @@ architecture behavioral of singer is
 	
 begin
 
-	process(clk) begin
-		buzzer <= not(buzzer);
+	process(clk_50) begin
+		buzzer <= '0';
 	end process;
 
 end architecture;

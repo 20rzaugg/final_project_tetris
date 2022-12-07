@@ -2,8 +2,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.std_logic_unsigned.all;
-library tetris_types;
-use tetris_types.all;
+library work;
+use work.tetris_types.all;
 
 entity screen_manager is
 		
@@ -20,7 +20,7 @@ entity screen_manager is
 		falling_block : in unsigned(2 downto 0);
 		falling_block_col : in unsigned(3 downto 0);
 		falling_block_row : in unsigned(3 downto 0);
-		score : in unsigned(19 downto 0)
+		score_in : in unsigned(19 downto 0)
 	);
 	
 end entity screen_manager;
@@ -228,7 +228,7 @@ signal numbers : numberfont := (
         ('0','0','0','0','0','0','0','1','1','0','0','0'),
         ('0','0','0','0','0','0','1','1','1','0','0','0'),
         ('0','0','0','0','0','0','1','1','0','0','0','0'),
-        ('0','0','0','0','0','0','1','1','0','0','0',')'),
+        ('0','0','0','0','0','0','1','1','0','0','0','0'),
         ('0','0','0','0','0','1','1','1','0','0','0','0'),
         ('0','0','0','0','0','1','1','0','0','0','0','0'),
         ('0','0','0','0','0','1','1','0','0','0','0','0'),
@@ -311,7 +311,7 @@ begin
         port map (
             clk => pclk,
             rst_l => rst_l,
-            score => score,
+            score => score_in,
             score_digits => score_digits
         );
 
@@ -342,18 +342,18 @@ begin
 
 	
 	--bring future to present
-	process (clk)
-		begin
-			if rising_edge(clk) then
-				if rst_l = '0' then
-					cur_state <= start;
-					--color_index <= X"000";
-				else
-					cur_state <= next_state;
-					--color_index <= next_color_index;
-				end if;	
-			end if;
-		end process;
+	--process (pclk)
+	--	begin
+	--		if rising_edge(pclk) then
+	--			if rst_l = '0' then
+	--				cur_state <= start;
+	--				--color_index <= X"000";
+	--			else
+	--				cur_state <= next_state;
+	--				--color_index <= next_color_index;
+	--			end if;	
+	--		end if;
+	--	end process;
 	
 
 	--set the future
