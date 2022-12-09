@@ -75,8 +75,8 @@ begin
 		
 		case cur_state is
 			when initial =>
-				for i in 0 to 8 loop
-					for j in 0 to 11 loop
+				for i in 0 to 11 loop
+					for j in 0 to 8 loop
 						next_bArray(i,j) <= X"0";
 					end loop;
 				end loop;
@@ -192,14 +192,14 @@ begin
 				
 				--array Management
 				if checkArray = true then
-					for i in 0 to 8 loop--for(int i = 0; i < 8; i++) --check rows
-						for j in 0 to 11 loop--for(int j = 0; j < 11; j++)--check cols
-							if i < 7 then
-								if blockArray(i,j) /= X"0" and blockArray(i,j) = blockArray(i + 1, j) and blockArray(i,j) = blockArray(i + 2, j) then
-									if i < 6 then
-										if blockArray(i + 3, j) = blockArray(i,j) then
-											if i < 5 then
-												if blockArray(i + 4, j) = blockArray(i,j) then
+					for j in 0 to 11 loop--for(int i = 0; i < 8; i++) --check rows
+						for i in 0 to 8 loop--for(int j = 0; j < 11; j++)--check cols
+							if j < 7 then
+								if blockArray(i,j) /= X"0" and blockArray(i,j) = blockArray(i, j + 1) and blockArray(i,j) = blockArray(i, j + 2) then
+									if j < 6 then
+										if blockArray(i, j + 3) = blockArray(i,j) then
+											if j < 5 then
+												if blockArray(i, j + 4) = blockArray(i,j) then
 													next_scorn <= scorn + X"5";
 												else 
 													next_scorn <= scorn + X"4";
@@ -211,10 +211,10 @@ begin
 									end if;
 								end if;
 							--end if;
-							if j < 10 then
-								if blockArray(i,j) /= X"0" and blockArray(i,j) = blockArray(i, j + 1) and blockArray(i,j) = blockArray(i, j + 2) then
-									if j < 9 then
-										if blockArray(i, j) = blockArray(i,j + 3) then
+							if i < 10 then
+								if blockArray(i,j) /= X"0" and blockArray(i,j) = blockArray(i + 1, j) and blockArray(i,j) = blockArray(i + 2, j) then
+									if i < 9 then
+										if blockArray( i , j ) = blockArray( i + 3, j ) then
 											next_scorn <= scorn + X"4";
 										else
 											next_scorn <= scorn + X"3";
@@ -222,8 +222,8 @@ begin
 									end if;
 								end if;
 							end if;
-							if i > 1 and blockArray(i,j) /= X"0" and blockArray(i - 1 ,j) = X"0" then
-								next_bArray(i - 1, j) <= blockArray(i,j);
+							if j > 1 and blockArray(i,j) /= X"0" and blockArray(i ,j - 1) = X"0" then
+								next_bArray(i, j - 1) <= blockArray(i,j);
 								next_bArray(i,j) <= X"0";
 							end if;
 						end if; --may not be necessary

@@ -9,14 +9,14 @@ entity screen_manager is
 		
 	port (
 
-      MAX10_CLK1_50 : in std_logic;
+        MAX10_CLK1_50 : in std_logic;
 		Blue : out std_logic_vector(3 downto 0);
 		Green : out std_logic_vector(3 downto 0);
 		Red : out std_logic_vector(3 downto 0);
 		VGA_HS : out std_logic;
 		VGA_VS : out std_logic;
 		rst_l : in std_logic := '1';
-      blockArray : in tetris_block_array;
+        blockArray : in tetris_block_array;
 		falling_block : in unsigned(3 downto 0);
 		falling_block_col : in unsigned(3 downto 0);
 		falling_block_row : in unsigned(3 downto 0);
@@ -342,18 +342,16 @@ begin
 
 	
 	--bring future to present
-	--process (pclk)
-	--	begin
-	--		if rising_edge(pclk) then
-	--			if rst_l = '0' then
-	--				cur_state <= start;
-	--				--color_index <= X"000";
-	--			else
-	--				cur_state <= next_state;
-	--				--color_index <= next_color_index;
-	--			end if;	
-	--		end if;
-	--	end process;
+	process (pclk)
+		begin
+			if rising_edge(pclk) then
+				if rst_l = '0' then
+					color_index <= X"000";
+				else
+					color_index <= next_color_index;
+				end if;	
+			end if;
+		end process;
 	
 
 	--set the future
@@ -361,12 +359,9 @@ begin
         variable lh_X : integer := 0;
         variable lh_Y : integer := 0;
     begin
-		if Vpos < X"02C" then
+		if Vpos < X"02B" or Hpos < X"0A0" then
 			color <= Black;
-		end if;
-			if (Hpos < X"0A0") then
-				color <= Black;
-			else
+		else
 				color <= Black;
 				--1px U shape
 				if (x = 176 and y >= 16 and y <= 463) then
@@ -415,46 +410,46 @@ begin
 					end if;
 				end if;
 
-                --paint blocks in block array
-                for i in 0 to 8 loop
-                    for j in 0 to 11 loop
-                        if(y >= row_positions(j) and y <= row_positions(j)+X"1D" and x >= col_positions(i) and x <= col_positions(i)+X"1D") then
-                            case blockArray(i, j) is
-                                when X"0" =>
-                                    color <= Black;
-                                when X"1" =>
-                                    color <= cRed;
-                                when X"2" =>
-                                    color <= cBlue;
-                                when X"3" =>
-                                    color <= cGreen;
-                                when X"4" =>
-                                    color <= Yellow;
+               --paint blocks in block array
+               for i in 0 to 11 loop
+                   for j in 0 to 8 loop
+                       if(y >= row_positions(i) and y <= row_positions(i)+X"1D" and x >= col_positions(j) and x <= col_positions(j)+X"1D") then
+                           case blockArray(i, j) is
+                               when X"0" =>
+                                   color <= Black;
+                               when X"1" =>
+                                   color <= cRed;
+                               when X"2" =>
+                                   color <= cBlue;
+                               when X"3" =>
+                                   color <= cGreen;
+                               when X"4" =>
+                                   color <= Yellow;
 										  when others =>
 												color <= Black;
-                            end case;
-                        end if;
-                        lh_X := lh_X + 16;
-                    end loop;
-                    lh_Y := lh_Y + 16;
-                end loop;
-                --paint falling block
-                if(y >= row_positions(to_integer(falling_block_row)) and y <= row_positions(to_integer(falling_block_row))+X"1D" and x >= col_positions(to_integer(falling_block_col)) and x <= col_positions(to_integer(falling_block_col))+X"1D") then
-                    case falling_block is
-                        when X"0" =>
-                            color <= Black;
-                        when X"1" =>
-                            color <= cRed;
-                        when X"2" =>
-                            color <= cBlue;
-                        when X"3" =>
-                            color <= cGreen;
-                        when X"4" =>
-                            color <= Yellow;
+                           end case;
+                       end if;
+                       lh_X := lh_X + 16;
+                   end loop;
+                   lh_Y := lh_Y + 16;
+               end loop;
+               --paint falling block
+               if(y >= row_positions(to_integer(falling_block_row)) and y <= row_positions(to_integer(falling_block_row))+X"1D" and x >= col_positions(to_integer(falling_block_col)) and x <= col_positions(to_integer(falling_block_col))+X"1D") then
+                   case falling_block is
+                       when X"0" =>
+                           color <= Black;
+                       when X"1" =>
+                           color <= cRed;
+                       when X"2" =>
+                           color <= cBlue;
+                       when X"3" =>
+                           color <= cGreen;
+                       when X"4" =>
+                           color <= Yellow;
 								when others =>
 									 color <= Black;
-                    end case;
-                end if;
+                   end case;
+               end if;
 			end if;
 		--end if;
 	end process;

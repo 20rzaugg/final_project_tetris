@@ -7,7 +7,8 @@ entity singer is port (
 	rst_l : in std_logic;
 	sw : in std_logic_vector(3 downto 0);
 	sound_selector : unsigned(2 downto 0); --0 = silence, 1 = click1, 2 = click2, 3 = game start, 4 = game over
-	buzzer : out std_logic
+	buzzer : out std_logic;
+	play_l : in std_logic
 );
 end entity;
 
@@ -147,16 +148,19 @@ architecture behavioral of singer is
 	signal frequency_logic : std_logic := '0';
 	signal volumePWM_counter : unsigned(3 downto 0) := (others => '0');
 	signal note_index : unsigned(7 downto 0) := (others => '0');
+	
 	signal game_over_index : unsigned(3 downto 0) := (others => '0');
+	signal next_game_over_index : unsigned(3 downto 0) := (others=> '0');
 
-	signal beatCounter : unsigned(23 downto 0) := (others => '0');
-	signal beats : unsigned(3 downto 0) := X"0";
+	signal beatCounter : unsigned(31 downto 0) := (others => '0');
+	signal beat : unsigned(3 downto 0) := X"0";
+	signal next_beat : unsigned (3 downto 0) := X"0";
 
-	type state_type is (idle, move, settle, disappear, game_over);
+	type state_type is (idle, move, settle, disappear, game_over, debounce);
 	signal state : state_type := idle;
 	signal next_state : state_type := idle;
 
-	signal prev_sound_selector : unsigned(2 downto 0) := (others => '0');
+	signal next_beatCounter : unsigned(31 downto 0) := (others => '0');
 	
 begin
 
@@ -164,6 +168,7 @@ begin
 		if rst_l = '0' then
 			frequency_counter <= (others => '0');
 			volumePWM_counter <= (others => '0');
+			state <= idle;
 		elsif rising_edge(clk_50) then
 			if frequency_counter >= notes(to_integer(note_index)) then
 				frequency_counter <= (others => '0');
@@ -176,14 +181,19 @@ begin
 			else
 				volumePWM_counter <= volumePWM_counter + 1;
 			end if;
-			if note_index > 0 then
+			if note_index = 0 then
+				buzzer <= '0';
+			else
 				buzzer <= frequency_logic and volume_logic;
 			end if;
+			beatCounter <= next_beatCounter;
+			beat <= next_beat;
 			state <= next_state;
+			game_over_index <= next_game_over_index;
 		end if;
 	end process;
 
-	process(volumePWM_counter) begin
+	process(volumePWM_counter, sw) begin
 		if volumePWM_counter <= unsigned(sw) then
 			volume_logic <= '1';
 		else
@@ -191,77 +201,120 @@ begin
 		end if;
 	end process;
 
-	process(sound_selector, state, clk_50) begin
-		if (sound_selector /= prev_sound_selector) then
+	process(sound_selector, state, beatCounter, play_l, game_over_index, beat) begin
+		if (play_l = '0' and state = idle) then
+			next_beatCounter <= (others => '0');
+			next_beat <= X"0";
+			note_index <= (others => '0');
+			next_game_over_index <= (others => '0');
 			case sound_selector is
-				when "000" => 
-						beats <= X"0";
-						next_state <= idle;
-						beatCounter <= (others => '0');
-				when "001" => 
+				when "000" =>
+					next_state <= idle;
+				when "001" =>
 					next_state <= move;
-					beatCounter <= (others => '0');
-					beats <= X"0";
-				when "010" => 
+				when "010" =>
 					next_state <= settle;
-					beatCounter <= (others => '0');
-					beats <= X"0";
-				when "011" => 
+				when "011" =>
 					next_state <= disappear;
-				when "100" => 
+				when "100" =>
 					next_state <= game_over;
-					game_over_index <= (others => '0');
-					beatCounter <= (others => '0');
-					beats <= X"0";
-				when others => 
+				when others =>
 					next_state <= idle;
 			end case;
-			prev_sound_selector <= sound_selector;
 		else
 			case state is
-				when idle => 
+				when idle =>
+					next_beatCounter <= (others => '0');
+					next_beat <= X"0";
+					note_index <= (others => '0');
+					next_game_over_index <= (others => '0');
 					next_state <= idle;
-					beatCounter <= (others => '0');
-					note_index <= X"00";
 				when move =>
-					if beatCounter < 5000000 then
-						beatCounter <= beatCounter + 1;
-						note_index <= X"1C"; --C3
+					--brief C3 pulse
+					next_game_over_index <= (others => '0');
+					note_index <= X"1C";
+					next_beat <= X"0";
+					if beatCounter >= 1000000 then
+						next_beatCounter <= (others => '0');
+						next_state <= debounce;
+					else
+						next_beatCounter <= beatCounter + 1;
 						next_state <= move;
-					else
-						next_state <= idle;
 					end if;
-
 				when settle =>
-				if beatCounter < 10000000 then
-					beatCounter <= beatCounter + 1;
-					note_index <= X"04"; --C0
-					next_state <= settle;
-				else
-					next_state <= idle;
-				end if;
+					--C2, rest, C2
+					next_game_over_index <= (others => '0');
+					next_beat <= (others => '0');
+					case to_integer(beatCounter) is
+						when 0 to 10000000 =>
+							note_index <= X"10";
+							next_beatCounter <= beatCounter + 1;
+							next_state <= settle;
+						when 10000001 to 15000000 =>
+							note_index <= X"00";
+							next_beatCounter <= beatCounter + 1;
+							next_state <= settle;
+						when 15000001 to 25000000 =>
+							note_index <= X"10";
+							next_beatCounter <= beatCounter + 1;
+							next_state <= settle;
+						when others =>
+							note_index <= X"00";
+							next_beatCounter <= (others => '0');
+							next_state <= debounce;
+					end case;
 				when disappear =>
-					next_state <= idle;
+					--C3, rest, G2
+					next_game_over_index <= (others => '0');
+					next_beat <= (others => '0');
+					case to_integer(beatCounter) is
+						when 0 to 10000000 =>
+							note_index <= X"1C";
+							next_beatCounter <= beatCounter + 1;
+							next_state <= disappear;
+						when 10000001 to 15000000 =>
+							note_index <= X"00";
+							next_beatCounter <= beatCounter + 1;
+							next_state <= disappear;
+						when 15000001 to 25000000 =>
+							note_index <= X"0A";
+							next_beatCounter <= beatCounter + 1;
+							next_state <= disappear;
+						when others =>
+							note_index <= X"00";
+							next_beatCounter <= (others => '0');
+							next_state <= debounce;
+					end case;
 				when game_over =>
-					if game_over_index <= 14 then
-						if beatCounter >= 10000000 then
-							beatCounter <= (others => '0');
-							if beats >= game_over_beats(to_integer(game_over_index)) then
-								beats <= X"0";
-								game_over_index <= game_over_index + 1;
-							else
-								beats <= beats + 1;
-							end if;
-						end if;
-						note_index <= game_over_notes(to_integer(game_over_index));
+					if game_over_index >= X"F" then
+						next_state <= debounce;
+					else
 						next_state <= game_over;
+					end if;
+					note_index <= game_over_notes(to_integer(game_over_index));
+					if beatCounter >= 25000000 then
+						next_beat <= beat + 1;
+						next_beatCounter <= (others => '0');
+					end if; 
+					if beat > game_over_beats(to_integer(game_over_index)) then
+						next_beatCounter <= (others => '0');
+						next_beat <= X"0";
+						next_game_over_index <= game_over_index + 1;
+					else
+						next_beatCounter <= beatCounter + 1;
+					end if;
+				when debounce =>
+					next_beatCounter <= (others => '0');
+					next_beat <= X"0";
+					next_game_over_index <= X"0";
+					note_index <= (others => '0');
+					if play_l = '0' then
+						next_state <= debounce;
 					else
 						next_state <= idle;
 					end if;
-				when others => next_state <= idle;
 			end case;
 		end if;
 	end process;
-
 end architecture behavioral;
 	

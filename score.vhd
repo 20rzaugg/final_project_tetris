@@ -114,6 +114,7 @@ begin
 				--divide the score by 100k
 				denominator_reg <= X"186A0"; --100,000
 				prev_score <= score;
+				nextstate <= delay;
 		  end if;
     end process;
 
