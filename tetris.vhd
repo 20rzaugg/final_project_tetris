@@ -39,7 +39,7 @@ architecture behavioral of tetris is
 		Key : in std_logic_vector(1 downto 0);
 		BoxPosition : in std_logic_vector(11 downto 0);
 		blockArray : buffer tetris_block_array;
-		falling_block : out unsigned(2 downto 0); -- color of falling block, 0 is no block
+		falling_block : out unsigned(3 downto 0); -- color of falling block, 0 is no block
 		falling_block_col : out unsigned(3 downto 0);
 		falling_block_row : out unsigned(3 downto 0);
 		score : out unsigned(19 downto 0);
@@ -68,10 +68,10 @@ architecture behavioral of tetris is
 		VGA_VS : out std_logic;
 		rst_l : in std_logic := '1';
       blockArray : in tetris_block_array;
-		falling_block : in unsigned(2 downto 0);
+		falling_block : in unsigned(3 downto 0);
 		falling_block_col : in unsigned(3 downto 0);
 		falling_block_row : in unsigned(3 downto 0);
-		score : in unsigned(19 downto 0)
+		score_in : in unsigned(19 downto 0)
 	);
 	end component;
 	
@@ -92,7 +92,7 @@ architecture behavioral of tetris is
 	signal score : unsigned(19 downto 0);
 	signal falling_block_row : unsigned(3 downto 0);
 	signal falling_block_col : unsigned(3 downto 0);
-	signal falling_block : unsigned(2 downto 0);
+	signal falling_block : unsigned(3 downto 0);
 	--signal rst : std_logic;
 	--signal clk5, clk12 :std_logic;
 	--signal fifo_re, fifo_we, fifo_mt : std_logic ;  --?????????????????????? consider not initializing this line
@@ -140,7 +140,7 @@ begin
 		       falling_block => falling_block,
 		       falling_block_col => falling_block_col,
 		       falling_block_row => falling_block_row,
-		       score => score
+		       score_in => score
 	);
 				
 		u4_rng : rng port map (

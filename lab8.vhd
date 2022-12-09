@@ -51,14 +51,14 @@ architecture behavioral of lab8 is
 		end component ADC;
 		
 		
-		component adcpll IS
+		component acdpll IS
 			PORT
 			(
 				inclk0		: IN STD_LOGIC  := '0';
 				c0		: OUT STD_LOGIC ;
 				locked		: OUT STD_LOGIC 
 			);
-		END component ADCpll;
+		END component ACDpll;
 		
 begin
 		--store response data in a variable and output to hex values.
@@ -82,7 +82,7 @@ begin
 			response_endofpacket   => open--response_endofpacket--CONNECTED_TO_response_endofpacket    --               .endofpacket
 		);
 		
-		u1_pll : component adcpll
+		u1_pll : component acdpll
 		port map (
 			inclk0 =>	ADC_CLK_10,
 			c0 =>			pclk,

@@ -17,7 +17,7 @@ entity screen_manager is
 		VGA_VS : out std_logic;
 		rst_l : in std_logic := '1';
       blockArray : in tetris_block_array;
-		falling_block : in unsigned(2 downto 0);
+		falling_block : in unsigned(3 downto 0);
 		falling_block_col : in unsigned(3 downto 0);
 		falling_block_row : in unsigned(3 downto 0);
 		score_in : in unsigned(19 downto 0)
@@ -30,7 +30,7 @@ architecture behavioral of screen_manager is
     component vgapll is port (
         areset : in std_logic := '0';
         inclk0 : in std_logic := '0';
-        c0 : in std_logic 
+        c0 : out std_logic 
     );
     end component; 
         
@@ -76,7 +76,7 @@ signal x : unsigned(11 downto 0);
 signal y : unsigned(11 downto 0);
 
 
-type numberfont is array(0 to 9, 0 to 11, 0 to 16) of std_logic;
+type numberfont is array(0 to 9, 0 to 16, 0 to 11) of std_logic;
 signal numbers : numberfont := (
     (
         --0
@@ -357,14 +357,14 @@ begin
 	
 
 	--set the future
-	process(Hpos) 
+	process(Hpos, x, y, Vpos, numbers, score_digits, blockArray, falling_block, falling_block_row, falling_block_col) 
         variable lh_X : integer := 0;
         variable lh_Y : integer := 0;
     begin
-		if (Vpos < X"02D") then
+		if Vpos < X"02C" then
 			color <= Black;
-		else
-			if (Hpos < X"09F") then
+		end if;
+			if (Hpos < X"0A0") then
 				color <= Black;
 			else
 				color <= Black;
@@ -430,6 +430,8 @@ begin
                                     color <= cGreen;
                                 when X"4" =>
                                     color <= Yellow;
+										  when others =>
+												color <= Black;
                             end case;
                         end if;
                         lh_X := lh_X + 16;
@@ -449,10 +451,12 @@ begin
                             color <= cGreen;
                         when X"4" =>
                             color <= Yellow;
+								when others =>
+									 color <= Black;
                     end case;
                 end if;
 			end if;
-		end if;
+		--end if;
 	end process;
 	 
 end architecture behavioral;

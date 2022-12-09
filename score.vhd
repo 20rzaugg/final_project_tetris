@@ -7,7 +7,7 @@ use work.tetris_types.all;
 entity score is 
     port (
         clk, rst_l : in std_logic;
-        score : in unsigned(20 downto 0);
+        score : in unsigned(19 downto 0);
         score_digits : out score_digits_array
     );
 end entity score;
@@ -25,10 +25,12 @@ architecture behavioral of score is
     type state_type is (delay, set);
     signal state, nextstate : state_type := delay;
     signal score_reg : std_logic_vector(19 downto 0);
+	 signal next_score_reg : std_logic_vector(19 downto 0);
     signal denominator_reg : std_logic_vector(19 downto 0) := X"00001";
     signal quotient_reg : std_logic_vector(19 downto 0);
     signal remainder_reg : std_logic_vector(19 downto 0);
     signal digit : unsigned(3 downto 0) := X"0";
+	 signal prev_score : unsigned(19 downto 0) := (others=> '0');
 
 begin
 
@@ -45,15 +47,15 @@ begin
     begin
         if rst_l = '0' then
             state <= delay;
-            score_reg <= (others => '0');
         elsif rising_edge(clk) then
             state <= nextstate;
         end if;
     end process;
 
-    process(state)
+    process(state, score)
     begin
-        case state is
+        if score = prev_score then
+		  case state is
             when delay =>
                 if(digit < X"5") then
                     nextstate <= set;
@@ -106,16 +108,13 @@ begin
                         nextstate <= delay;
                 end case; 
         end case;
-    end process;
-
-    --when the score changes, start the state machine
-    process(score)
-    begin
-        digit <= X"0";
-        score_reg <= std_logic_vector(score);
-        --divide the score by 100k
-        denominator_reg <= X"186A0"; --100,000
-
+		  else
+				digit <= X"0";
+				score_reg <= std_logic_vector(score);
+				--divide the score by 100k
+				denominator_reg <= X"186A0"; --100,000
+				prev_score <= score;
+		  end if;
     end process;
 
 end behavioral;

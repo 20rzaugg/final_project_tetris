@@ -11,7 +11,7 @@ entity controller is
 		Key : in std_logic_vector(1 downto 0);
 		BoxPosition : in std_logic_vector(11 downto 0);
 		blockArray : buffer tetris_block_array;
-		falling_block : out unsigned(2 downto 0); -- color of falling block, 0 is no block
+		falling_block : out unsigned(3 downto 0); -- color of falling block, 0 is no block
 		falling_block_col : out unsigned(3 downto 0);
 		falling_block_row : out unsigned(3 downto 0);
 		score : out unsigned(19 downto 0);
@@ -30,7 +30,7 @@ architecture behavioral of controller is
 	signal timer : integer;
 	signal checkArray, next_checkArray : boolean := False;
 	signal Barray, next_Barray : tetris_block_array;
-	signal fBlock, next_fBlock : unsigned(2 downto 0);
+	signal fBlock, next_fBlock : unsigned(3 downto 0);
 	signal scorn, next_scorn : unsigned(19 downto 0);
 	signal createBlock, next_createBlock : boolean := false;
 
@@ -77,7 +77,7 @@ begin
 			when initial =>
 				for i in 0 to 8 loop
 					for j in 0 to 11 loop
-						next_bArray(i,j) <= b"000";
+						next_bArray(i,j) <= X"0";
 					end loop;
 				end loop;
 				
@@ -92,7 +92,7 @@ begin
 			
 				--initialize falling block
 				if createBlock = true then
-					next_fBlock <= b"0"&unsigned(rand);
+					next_fBlock <= b"00"&unsigned(rand);
 					next_row <= X"D";
 					next_col <= X"4";
 					next_createBlock <= false;
@@ -194,28 +194,39 @@ begin
 				if checkArray = true then
 					for i in 0 to 8 loop--for(int i = 0; i < 8; i++) --check rows
 						for j in 0 to 11 loop--for(int j = 0; j < 11; j++)--check cols
-							if blockArray(i,j) /= X"0" and blockArray(i,j) = blockArray(i + 1, j) and blockArray(i,j) = blockArray(i + 2, j) and i < 7 then
-								if (blockArray(i + 3, j) = blockArray(i,j) and i < 6) then
-									if (blockArray(i + 4, j) = blockArray(i,j) and i < 5) then
-										next_scorn <= scorn + X"5";
-									else 
-										next_scorn <= scorn + X"4";
+							if i < 7 then
+								if blockArray(i,j) /= X"0" and blockArray(i,j) = blockArray(i + 1, j) and blockArray(i,j) = blockArray(i + 2, j) then
+									if i < 6 then
+										if blockArray(i + 3, j) = blockArray(i,j) then
+											if i < 5 then
+												if blockArray(i + 4, j) = blockArray(i,j) then
+													next_scorn <= scorn + X"5";
+												else 
+													next_scorn <= scorn + X"4";
+												end if;
+											end if;
+										else
+											next_scorn <= scorn + X"3";
+										end if;
 									end if;
-								else
-									next_scorn <= scorn + X"3";
 								end if;
-							if blockArray(i,j) /= X"0" and blockArray(i,j) = blockArray(i, j + 1) and blockArray(i,j) = blockArray(i, j + 2) and j < 9 then
-								if blockArray(i, j + 3) = blockArray(i,j) and j < 8 then
-									next_scorn <= scorn + X"4";
-								else
-									next_scorn <= scorn + X"3";
+							--end if;
+							if j < 10 then
+								if blockArray(i,j) /= X"0" and blockArray(i,j) = blockArray(i, j + 1) and blockArray(i,j) = blockArray(i, j + 2) then
+									if j < 9 then
+										if blockArray(i, j) = blockArray(i,j + 3) then
+											next_scorn <= scorn + X"4";
+										else
+											next_scorn <= scorn + X"3";
+										end if;
+									end if;
 								end if;
 							end if;
 							if i > 1 and blockArray(i,j) /= X"0" and blockArray(i - 1 ,j) = X"0" then
 								next_bArray(i - 1, j) <= blockArray(i,j);
 								next_bArray(i,j) <= X"0";
 							end if;
-						end if;
+						end if; --may not be necessary
 						end loop;
 					end loop;
 					next_checkArray <= False;
