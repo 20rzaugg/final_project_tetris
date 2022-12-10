@@ -15,12 +15,12 @@ entity screen_manager is
 		Red : out std_logic_vector(3 downto 0);
 		VGA_HS : out std_logic;
 		VGA_VS : out std_logic;
-		rst_l : in std_logic := '1';
+		rst_l : in std_logic;
         blockArray : in tetris_block_array;
 		falling_block : in unsigned(3 downto 0);
 		falling_block_col : in unsigned(3 downto 0);
 		falling_block_row : in unsigned(3 downto 0);
-		score_in : in unsigned(19 downto 0)
+		score_in : in score_digits_array
 	);
 	
 end entity screen_manager;
@@ -374,37 +374,37 @@ begin
 					color <= White;
 				end if;
 				--hundred_thousands digit
-				if (y >= 231 and y <= 248 and x >= 506 and x <= 518) then
+				if (y >= 231 and y <= 248 and x >= 506 and x <= 517) then
 					if (numbers(to_integer(score_digits(0)), to_integer(y-X"0E7"), to_integer(x-X"1FA")) = '1') then
 						color <= White;
 					end if;
 				end if;
 				--ten_thousands digit
-				if (y >= 231 and y <= 248 and x >= 522 and x <= 534) then
+				if (y >= 231 and y <= 248 and x >= 522 and x <= 533) then
 					if (numbers(to_integer(score_digits(1)), to_integer(y-X"0E7"), to_integer(x-X"20A")) = '1') then
 						color <= White;
 					end if;
 				end if;
 				--thousands digit
-				if (y >= 231 and y <= 248 and x >= 538 and x <= 550) then
+				if (y >= 231 and y <= 248 and x >= 538 and x <= 549) then
 					if numbers(to_integer(score_digits(2)), to_integer(y-X"0E7"), to_integer(x-X"21A")) = '1' then
 						color <= White;
 					end if;
 				end if;
 				--hundreds digit
-				if (y >= 231 and y <= 248 and x >= 554 and x <= 566) then
+				if (y >= 231 and y <= 248 and x >= 554 and x <= 565) then
 					if (numbers(to_integer(score_digits(3)), to_integer(y-X"0E7"), to_integer(x-X"22A")) = '1') then
 						color <= White;
 					end if;
 				end if;
 				--tens digit
-				if (y >= 231 and y <= 248 and x >= 570 and x <= 582) then
+				if (y >= 231 and y <= 248 and x >= 570 and x <= 581) then
 					if (numbers(to_integer(score_digits(4)), to_integer(y-X"0E7"), to_integer(x-X"23A")) = '1') then
 						color <= White;
 					end if;
 				end if;
 				--ones digit
-				if (y >= 231 and y <= 248 and x >= 586 and x <= 598) then
+				if (y >= 231 and y <= 248 and x >= 586 and x <= 597) then
 					if (numbers(to_integer(score_digits(5)), to_integer(y-X"0E7"), to_integer(x-X"24A")) = '1') then
 						color <= White;
 					end if;

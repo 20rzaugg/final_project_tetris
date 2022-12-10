@@ -54,20 +54,20 @@ architecture behavioral of tetris is
 		ADC_CLK_10 : in std_logic;
 		KEY : in std_logic_vector(1 downto 0);
 		ARDUINO_IO : inout std_logic_vector(15 downto 0); --input the continuous voltage data on the first pin and command channel.
-	   ARDUINO_RESET_N : inout std_logic;
+	   	ARDUINO_RESET_N : inout std_logic;
 		BoxPosition : out std_logic_vector(11 downto 0)
 	);
 	end component;
 	
 	component screen_manager is port (
-      MAX10_CLK1_50 : in std_logic;
+        MAX10_CLK1_50 : in std_logic;
 		Blue : out std_logic_vector(3 downto 0);
 		Green : out std_logic_vector(3 downto 0);
 		Red : out std_logic_vector(3 downto 0);
 		VGA_HS : out std_logic;
 		VGA_VS : out std_logic;
 		rst_l : in std_logic := '1';
-      blockArray : in tetris_block_array;
+        blockArray : in tetris_block_array;
 		falling_block : in unsigned(3 downto 0);
 		falling_block_col : in unsigned(3 downto 0);
 		falling_block_row : in unsigned(3 downto 0);

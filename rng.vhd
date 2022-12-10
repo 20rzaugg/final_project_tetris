@@ -8,38 +8,34 @@ use ieee.numeric_std.all;
 entity rng is
 		
 	port (
-		MAX10_CLK1_50 : in std_logic;
-		KEY : in std_logic_vector(1 downto 0);
-		rand : out std_logic_vector(1 downto 0)
+		clk : in std_logic;
+		rst_l : in std_logic;
+		rand : out std_logic_vector(3 downto 0)
 	);
 	
 end entity rng;
 	
 architecture behavioral of rng is 
 
-	signal lfsr : unsigned(11 downto 0);
+	signal lfsr : unsigned(11 downto 0) := X"1FA"; --seed value
 	signal bitt : std_logic;
-	signal timer : integer;--(27 downto 0);
-	--signal randnum : std_logic_vector(1 downto 0);
+	signal timer : integer := 0;
 	
 
 begin
 
 		bitt <= lfsr(11) xor lfsr(10) xor lfsr(9) xor lfsr(3);
-		--rand <= randnum;
-		--randnum <= std_logic_vector(lfsr(1 downto 0));
-		rand <= std_logic_vector(lfsr(1 downto 0));
+		--random number 1-4
+		rand <= std_logic_vector("00"&lfsr(1 downto 0) + 1);
 	
 	
-	process (MAX10_CLK1_50, KEY) 
-	
-	begin
-		if KEY(0) = '0' then
-			--timer <= 0;
-			--randnum <= b"00";
+	process (clk, rst_l) begin
+		if rst_l = '0' then
+			timer <= 0;
+			lfsr <= X"1FA";
 		end if;
 		if rising_edge(MAX10_CLK1_50) and KEY(0) /= '0' then
-			if timer = 25000000 then
+			if timer = 2500000 then
 				lfsr <= lfsr(10 downto 0) & bitt;
 				timer <= 0;
 			else
