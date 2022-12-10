@@ -5,11 +5,16 @@ library work;
 use work.tetris_types.all;
 
 entity controller2 is port (
-    MAX10_CLK1_50 : in std_logic;
-    key : in std_logic_vector(1 downto 0);
-    sw : in std_logic_vector(3 downto 0);
-    buzzer : inout std_logic;
-    potPosition : in std_logic_vector(11 downto 0);
+	MAX10_CLK1_50 : in std_logic;
+	ADC_CLK_10 : in std_logic;
+	KEY : in std_logic_vector(1 downto 0);
+	VGA_B : out std_logic_vector(3 downto 0);
+	VGA_G : out std_logic_vector(3 downto 0);
+	VGA_HS : out std_logic;
+	VGA_R : out std_logic_vector(3 downto 0);
+	VGA_VS : out std_logic;
+	ARDUINO_IO : inout std_logic_vector(15 downto 0);
+	ARDUINO_RESET_N : inout std_logic	
 );
 end controller2;
 
@@ -52,8 +57,8 @@ architecture behavioral of controller2 is
         blockArray : in tetris_block_array;
 		falling_block : in unsigned(3 downto 0);
 		falling_block_col : in unsigned(3 downto 0);
-		falling_block_row : in unsigned(3 downto 0);
-		score_in : in unsigned(19 downto 0)
+		falling_block_y : in unsigned(11 downto 0);
+		score_in : in score_digit_array;
     );
     end component screen_manager;
     
@@ -109,6 +114,27 @@ begin
         play_l => play_l
     );
     
+    u2_rng : rng port map (
+        clk => MAX10_CLK1_50,
+        rst_l => key(0),
+        rand => rand
+    );
+
+    u3_screen_manager : screen_manager port map (
+        MAX10_CLK1_50 => MAX10_CLK1_50,
+        Blue => Blue,
+        Green => Green,
+        Red => Red,
+        VGA_HS => VGA_HS,
+        VGA_VS => VGA_VS,
+        rst_l => key(0),
+        blockArray => blockArray,
+        falling_block => falling_block,
+        falling_block_col => falling_block_col,
+        falling_block_y => falling_block_y,
+        score_in => score
+    );
+
     --manages signal updates on the clock cycle and reset
     process(MAX10_CLK1_50, key(0)) begin
         if key(0) = '0' then

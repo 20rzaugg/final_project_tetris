@@ -17,7 +17,7 @@ entity tetris is
 		VGA_R : out std_logic_vector(3 downto 0);
 		VGA_VS : out std_logic;
 		ARDUINO_IO : inout std_logic_vector(15 downto 0); --input the continuous voltage data on the first pin and command channel.
-	   ARDUINO_RESET_N : inout std_logic	
+	   	ARDUINO_RESET_N : inout std_logic	
 	);
 	
 end entity tetris;
@@ -48,7 +48,6 @@ architecture behavioral of tetris is
 	end component;
 	
 	component lab8 --ADC
-	
 		PORT
 	(
 		ADC_CLK_10 : in std_logic;
