@@ -19,7 +19,7 @@ entity screen_manager is
         blockArray : in tetris_block_array;
 		falling_block : in unsigned(3 downto 0);
 		falling_block_col : in unsigned(3 downto 0);
-		falling_block_row : in unsigned(3 downto 0);
+		falling_block_y : in unsigned(11 downto 0);
 		score_in : in score_digits_array
 	);
 	
@@ -281,8 +281,6 @@ signal numbers : numberfont := (
 );
 type col_positions_type is array(0 to 8) of unsigned(11 downto 0);
 signal col_positions : col_positions_type := (X"0B2", X"0D2", X"0F2", X"112", X"132", X"152", X"172", X"192", X"1B2");
-type row_positions_type is array(0 to 13) of unsigned(11 downto 0);
-signal row_positions : row_positions_type := (X"1B0", X"190", X"170", X"150", X"130", X"110", X"0F0", X"0D0", X"0B0", X"090", X"070", X"050", X"030", X"010");
 
 begin			
 	
@@ -434,7 +432,7 @@ begin
                    lh_Y := lh_Y + 16;
                end loop;
                --paint falling block
-               if(y >= row_positions(to_integer(falling_block_row)) and y <= row_positions(to_integer(falling_block_row))+X"1D" and x >= col_positions(to_integer(falling_block_col)) and x <= col_positions(to_integer(falling_block_col))+X"1D") then
+               if(y >= falling_block_y and y <= falling_block_y+X"1D" and x >= col_positions(to_integer(falling_block_col)) and x <= col_positions(to_integer(falling_block_col))+X"1D") then
                    case falling_block is
                        when X"0" =>
                            color <= Black;
@@ -446,12 +444,11 @@ begin
                            color <= cGreen;
                        when X"4" =>
                            color <= Yellow;
-								when others =>
-									 color <= Black;
+					   when others =>
+						   color <= Black;
                    end case;
                end if;
 			end if;
-		--end if;
 	end process;
 	 
 end architecture behavioral;

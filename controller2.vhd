@@ -62,6 +62,15 @@ architecture behavioral of controller2 is
     );
     end component screen_manager;
     
+    component potADC is port (
+        clk : in std_logic;
+        rst_l : in std_logic;
+        ARDUINO_IO : inout std_logic_vector(15 downto 0); --input the continuous voltage data on the first pin and command channel.
+        ARDUINO_RESET_N : inout std_logic;
+        potPosition : out std_logic_vector(11 downto 0)
+    );
+    end component potADC;
+
     signal blockArray : tetris_block_array := (others => (others => X"0"));
     signal next_blockArray : tetris_block_array ;
     signal falling_block : unsigned(3 downto 0); -- color of falling block, 0 is no block
@@ -70,10 +79,13 @@ architecture behavioral of controller2 is
     signal falling_block_y : unsigned(11 downto 0);
     signal score : score_digits_array;
 
+    potPosition : std_logic_vector(11 downto 0);
+
     type col_heights_type is array (0 to 8) of unsigned(3 downto 0);
     signal stack_heights : col_heights_type := (others => X"0");
+    signal next_stack_heights : col_heights_type := (others => X"0");
 
-    type gamestate_type is (idle, drop, land, check, fall, gameover);
+    type gamestate_type is (idle, drop, set, gameover);
     signal state : gamestate_type := idle;
     signal next_state : gamestate_type := idle;
     
@@ -110,7 +122,7 @@ begin
         rst_l => key(0),
         sw => sw,
         sound_selector => sound_selector,
-        buzzer => buzzer,
+        buzzer => ARDUINO_IO(11),
         play_l => play_l
     );
     
@@ -135,6 +147,14 @@ begin
         score_in => score
     );
 
+    u4_potADC : potADC port map (
+        clk => MAX10_CLK1_50,
+        rst_l => key(0),
+        ARDUINO_IO => ARDUINO_IO,
+        ARDUINO_RESET_N => ARDUINO_RESET_N,
+        potPosition => potPosition
+    );
+
     --manages signal updates on the clock cycle and reset
     process(MAX10_CLK1_50, key(0)) begin
         if key(0) = '0' then
@@ -151,6 +171,7 @@ begin
             fall_timer <= next_fall_timer;
             play_l <= next_play_l;
             blockArray <= next_blockArray;
+            stack_heights <= next_stack_heights;
         end if;
     end process;
 
@@ -273,23 +294,29 @@ begin
                     next_state <= drop;
                     falling_block <= rand;
                     falling_block_y <= X"0";
-                    next_block_array <= blockArray;
                 else
                     next_state <= idle;
                 end if;
             when drop =>
-            --TODO: add logic for falling block y coordinate
-                if falling_block_y >= row_positions(to_integer(stack_heights(to_integer(falling_block_col)) + 1)) then
-                    next_state <= land
-                    next_state <= drop;
-                    falling_block_y <= falling_block_y + 1;
+                if falling_block_y >= row_positions(to_integer(stack_heights(to_integer(falling_block_col)+1))) then
+                    next_state <= set
+                    set_block <= '1';
                 else
-                    next_state <= land;
+                    next_state <= drop;
+                    set_block <= '0';
+                    if fall_timer >= 50000 then
+                        next_falling_block_y <= falling_block_y + 1;
+                        next_fall_timer <= 0;
+                    else
+                        next_fall_timer <= fall_timer + 1;
+                        block_settle <= '1';
+                    end if;
                 end if;
-            when land =>
-            --TODO: add logic for block landing    
-            when check =>
-            --TODO: add game over logic    
+            when set =>
+                next_state <= drop;
+                falling_block <= rand;
+                falling_block_y <= X"0";
+                block_settle <= '0';
             when game_over =>
                 
             when others =>
@@ -297,75 +324,80 @@ begin
         end case
     end process
 
-    process(blockArray) 
+    process(blockArray, set_block) 
         variable score_modifier : integer := 0;
     begin
         next_blockArray <= blockArray;
+        next_stack_heights <= stack_heights;
         score_modifier := 0;
-        --TODO: add logic for placing falling block into blockArray
-        --check for horizontal matches
-        for i in 0 to 11 loop
-            for j in 0 to 8 loop
-                if j < 7 then
-                    if blockArray(i,j) = blockArray(i,j+1) and blockArray(i,j) = blockArray(i,j+2) then
-                        next_blockArray(i,j) <= X"0";
-                        next_blockArray(i,j+1) <= X"0";
-                        next_blockArray(i,j+2) <= X"0";
-                        score_modifier := score_modifier + 3;
-                        if j < 6 then
-                            if blockArray(i,j) = blockArray(i,j+3) then
-                                next_blockArray(i, j+3) <= X"0";
-                                score_modifier := score_modifier + 1;
-                                if j < 5 then
-                                    if blockArray(i,j) = blockArray(i,j+4) then
-                                        next_blockArray(i, j+4) <= X"0";
-                                        score_modifier := score_modifier + 1;
+        if(set_block = '1') then
+            next_blockArray(to_integer(stack_heights(to_integer(falling_block_col))), to_integer(falling_block_col)) <= falling_block;
+            next_stack_heights(to_integer(falling_block_col)) <= stack_heights(to_integer(falling_block_col)) + 1;
+        else
+            --check for horizontal matches
+            for i in 0 to 11 loop
+                for j in 0 to 8 loop
+                    if j < 7 then
+                        if blockArray(i,j) = blockArray(i,j+1) and blockArray(i,j) = blockArray(i,j+2) then
+                            next_blockArray(i,j) <= X"0";
+                            next_blockArray(i,j+1) <= X"0";
+                            next_blockArray(i,j+2) <= X"0";
+                            score_modifier := score_modifier + 3;
+                            if j < 6 then
+                                if blockArray(i,j) = blockArray(i,j+3) then
+                                    next_blockArray(i, j+3) <= X"0";
+                                    score_modifier := score_modifier + 1;
+                                    if j < 5 then
+                                        if blockArray(i,j) = blockArray(i,j+4) then
+                                            next_blockArray(i, j+4) <= X"0";
+                                            score_modifier := score_modifier + 1;
+                                        end if
                                     end if
                                 end if
-                            end if
-                        end if  
-                    end if
-                end if
-            end loop
-        end loop
-        --check for vertical matches
-        for j in 0 to 8 loop
-            for i in 0 to 11 loop
-                if i < 10 then
-                    if blockArray(i,j) = blockArray(i+1,j) and blockArray(i,j) = blockArray(i+2,j) then
-                        next_blockArray(i,j) <= X"0";
-                        next_blockArray(i+1,j) <= X"0";
-                        next_blockArray(i+2,j) <= X"0";
-                        score_modifier := score_modifier + 3;
-                        if i < 9 then
-                            if blockArray(i,j) = blockArray(i+3,j) then
-                                next_blockArray(i+3, j) <= X"0";
-                                score_modifier := score_modifier + 1;
-                                if i < 8 then
-                                    if blockArray(i,j) = blockArray(i+4,j) then
-                                        next_blockArray(i+4, j) <= X"0";
-                                        score_modifier := score_modifier + 1;
-                                    end if
-                                end if
-                            end if
-                        end if  
-                    end if
-                end if
-            end loop
-        end loop
-        --check for columns that need to be shifted
-        for j in 0 to 8 loop
-            for i in 0 to 11 loop
-                if blockArray(i,j) = X"0" then
-                    for k in i to 11 loop
-                        if blockArray(k,j) /= X"0" then
-                            next_blockArray(i,j) <= blockArray(k,j);
-                            next_blockArray(k,j) <= X"0";
-                            break;
+                            end if  
                         end if
-                    end loop
-                end if
+                    end if
+                end loop
             end loop
-        end loop
+            --check for vertical matches
+            for j in 0 to 8 loop
+                for i in 0 to 11 loop
+                    if i < 10 then
+                        if blockArray(i,j) = blockArray(i+1,j) and blockArray(i,j) = blockArray(i+2,j) then
+                            next_blockArray(i,j) <= X"0";
+                            next_blockArray(i+1,j) <= X"0";
+                            next_blockArray(i+2,j) <= X"0";
+                            score_modifier := score_modifier + 3;
+                            if i < 9 then
+                                if blockArray(i,j) = blockArray(i+3,j) then
+                                    next_blockArray(i+3, j) <= X"0";
+                                    score_modifier := score_modifier + 1;
+                                    if i < 8 then
+                                        if blockArray(i,j) = blockArray(i+4,j) then
+                                            next_blockArray(i+4, j) <= X"0";
+                                            score_modifier := score_modifier + 1;
+                                        end if
+                                    end if
+                                end if
+                            end if  
+                        end if
+                    end if
+                end loop
+            end loop
+            --check for columns that need to be shifted
+            for j in 0 to 8 loop
+                for i in 0 to 11 loop
+                    if blockArray(i,j) = X"0" then
+                        for k in i to 11 loop
+                            if blockArray(k,j) /= X"0" then
+                                next_blockArray(i,j) <= blockArray(k,j);
+                                next_blockArray(k,j) <= X"0";
+                                break;
+                            end if
+                        end loop
+                    end if
+                end loop
+            end loop
+        end if
         add_value <= score_modifier; --probably an error
     end process;
