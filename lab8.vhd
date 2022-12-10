@@ -6,18 +6,15 @@ entity lab8 is
 		
 	port (
 		ADC_CLK_10 : in std_logic;
-		KEY : in std_logic_vector(1 downto 0);
+		rst_l : in std_logic;
 		ARDUINO_IO : inout std_logic_vector(15 downto 0); --input the continuous voltage data on the first pin and command channel.
-	   ARDUINO_RESET_N : inout std_logic;
+	    ARDUINO_RESET_N : inout std_logic;
 		BoxPosition : out std_logic_vector(11 downto 0)
 	);
 	
 end entity lab8;
 	
 architecture behavioral of lab8 is 
-	
-	type MY_MEM is array(0 to 15) of unsigned(7 downto 0);
-	signal sev_seg : MY_MEM := (X"C0", X"F9", X"A4", X"B0", X"99", X"92", X"83", X"F8", X"80", X"98", X"88", X"83", X"C6", X"A1", X"86", X"8E");
 	
 	signal pclk : std_logic;		--connections from pll to adc
 	signal plocked : std_logic;
@@ -38,7 +35,7 @@ architecture behavioral of lab8 is
 			adc_pll_clock_clk      : in  std_logic                     := '0';             -- clk
 			adc_pll_locked_export  : in  std_logic                     := '0';             -- export
 			command_valid          : in  std_logic                     := '1';             -- valid
-			command_channel        : in  std_logic_vector(4 downto 0)  := b"00010"; -- channel
+			command_channel        : in  std_logic_vector(4 downto 0)  := b"00010"; 	   -- channel
 			command_startofpacket  : in  std_logic                     := '1';             -- startofpacket
 			command_endofpacket    : in  std_logic                     := '1';             -- endofpacket
 			command_ready          : out std_logic;                                        -- ready
@@ -84,25 +81,25 @@ begin
 		
 		u1_pll : component acdpll
 		port map (
-			inclk0 =>	ADC_CLK_10,
-			c0 =>			pclk,
-			locked =>	plocked
-			);
+			inclk0 => ADC_CLK_10,
+			c0 => pclk,
+			locked => plocked
+		);
 	
 	process (ADC_CLK_10, KEY) 
 	
 	begin
-		if KEY(0) = '0' then
+		if rst_l = '0' then
 				count <= X"0000000";
 		elsif rising_edge(ADC_CLK_10) then
-			if count = X"0989680" then
+			if count = X"0989680" then --16 times per second
 				count <= X"0000000";
 				if response_valid = '1' then
 					clocked_out <= ADC_output;
 				end if;
 			else
 				count <= count + X"0000001";
-				--clocked_out <= clocked_out;
+				clocked_out <= clocked_out;
 			end if;
 		end if;
 	end process;
