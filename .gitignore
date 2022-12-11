@@ -37,3 +37,5 @@ db/ip/*
 **.tmw_info
 **.vpr.ammdb
 incremental_db
+**.hdl.mif
+tetris.cdf

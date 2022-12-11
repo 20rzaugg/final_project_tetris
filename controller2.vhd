@@ -182,6 +182,7 @@ begin
             blockArray <= next_blockArray;
             stack_heights <= next_stack_heights;
 				falling_block <= next_falling_block;
+				falling_block_y <= next_falling_block_y;
 				end if;
         end if;
     end process;
@@ -195,80 +196,102 @@ begin
                 --if the column next to the current column has blocks stacked higher than the block's current position, we can't move the block
                 if potPosition > X"1C7" and falling_block_y < row_positions(to_integer(stack_heights(1))) then
                     next_col <= X"1";
-                    --sound_selector <= b"001";
-                    --next_play_l <= '0';
+						  col_move <= '1';
                 else
                     next_col <= X"0";
-                    --next_play_l <= '1'; ---WTF is this
+						  col_move <= '0';
                 end if;
             when X"1" =>
                 if potPosition < X"1C7" and falling_block_y < row_positions(to_integer(stack_heights(0))) then
                     next_col <= X"0";
+						  col_move <= '1';
                 else if potPosition > X"38E" and falling_block_y < row_positions(to_integer(stack_heights(2))) then
                     next_col <= X"2";
+						  col_move <= '1';
                 else
                     next_col <= X"1";
+						  col_move <= '0';
 					 end if;
                 end if;
             when X"2" =>
                 if potPosition < X"38E" and falling_block_y < row_positions(to_integer(stack_heights(1))) then
                     next_col <= X"1";
+						  col_move <= '1';
                 else if potPosition > X"555" and falling_block_y < row_positions(to_integer(stack_heights(3))) then
                     next_col <= X"3";
+						  col_move <= '1';
                 else
                     next_col <= X"2";
+						  col_move <= '0';
                 end if;
 					 end if;
             when X"3" =>
                 if potPosition < X"555" and falling_block_y < row_positions(to_integer(stack_heights(2))) then
                     next_col <= X"2";
+						  col_move <= '1';
                 else if potPosition > X"71C" and falling_block_y < row_positions(to_integer(stack_heights(4))) then
                     next_col <= X"4";
+						  col_move <= '1';
                 else
                     next_col <= X"3";
+						  col_move <= '0';
                 end if;
 					 end if;
             when X"4" =>
                 if potPosition < X"71C" and falling_block_y < row_positions(to_integer(stack_heights(3))) then
                     next_col <= X"3";
+						  col_move <= '1';
                 else if potPosition > X"8E3" and falling_block_y < row_positions(to_integer(stack_heights(5))) then
                     next_col <= X"5";
+						  col_move <= '1';
                 else
                     next_col <= X"4";
+						  col_move <= '0';
                 end if;
 					 end if;
             when X"5" =>
                 if potPosition < X"8E3" and falling_block_y < row_positions(to_integer(stack_heights(4))) then
                     next_col <= X"4";
+						  col_move <= '1';
                 else if potPosition > X"AAB" and falling_block_y < row_positions(to_integer(stack_heights(6))) then
                     next_col <= X"6";
+						  col_move <= '1';
                 else
                     next_col <= X"5";
+						  col_move <= '0';
                 end if;
 					 end if;
             when X"6" =>
                 if potPosition < X"AAB" and falling_block_y < row_positions(to_integer(stack_heights(5))) then
                     next_col <= X"5";
+						  col_move <= '1';
                 else if potPosition > X"C72" and falling_block_y < row_positions(to_integer(stack_heights(7))) then
                     next_col <= X"7";
+						  col_move <= '1';
                 else
                     next_col <= X"6";
+						  col_move <= '0';
                 end if;
 					 end if;
             when X"7" =>
                 if potPosition < X"C72" and falling_block_y < row_positions(to_integer(stack_heights(6))) then
                     next_col <= X"6";
+						  col_move <= '1';
                 else if potPosition > X"E39" and falling_block_y < row_positions(to_integer(stack_heights(8))) then
                     next_col <= X"8";
+						  col_move <= '1';
                 else
                     next_col <= X"7";
+						  col_move <= '0';
                 end if;
 					 end if;
             when X"8" =>
                 if potPosition < X"E39" and falling_block_y < row_positions(to_integer(stack_heights(7))) then
                     next_col <= X"7";
+						  col_move <= '1';
                 else
                     next_col <= X"8";
+						  col_move <= '0';
 					 end if;
             when others =>
                 next_col <= X"0";
@@ -324,7 +347,7 @@ begin
                 else
                     next_state <= drop;
                     set_block <= '0';
-                    if fall_timer >= 50000 then
+                    if fall_timer >= 500000 then
                         next_falling_block_y <= falling_block_y + 1;
                         next_fall_timer <= 0;
                     else
@@ -416,6 +439,7 @@ begin
                                 --break;
                             end if;
                         end loop;
+								
                     end if;
                 end loop;
             end loop;
