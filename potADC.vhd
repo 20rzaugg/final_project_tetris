@@ -73,16 +73,16 @@ begin
 	);
 		
 	u1_pll : component acdpll port map (
-		inclk0 => ADC_CLK_10,
+		inclk0 => clk,
 		c0 => pclk,
 		locked => plocked
 	);
 	
-	process (clk, KEY) begin
+	process (clk, rst_l) begin
 		if rst_l = '0' then
 				count <= X"0000000";
-		elsif rising_edge(ADC_CLK_10) then
-			if count = X"0989680" then --16 times per second
+		elsif rising_edge(clk) then
+			if count = X"00061A8" then--X"0989680" then --16 times per second
 				count <= X"0000000";
 				if response_valid = '1' then
 					clocked_out <= ADC_output;

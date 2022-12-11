@@ -9,7 +9,7 @@ entity b10_accumulator is port (
     rst_l : in std_logic;
     add_value : in unsigned(3 downto 0);
     accumulate : in std_logic;
-    score : buffer score_digits_array;
+    score : buffer score_digits_array
 );
 end b10_accumulator;
 
@@ -42,15 +42,15 @@ begin
                 if score(5) + add_value > 9 then
                     score_reg(5) <= score(5) + add_value - 10;
                     if score(4) = 9 then
-                        score_reg(4) <= 0;
+                        score_reg(4) <= X"0";
                         if score(3) = 9 then
-                            score_reg(3) <= 0;
+                            score_reg(3) <= X"0";
                             if score(2) = 9 then
-                                score_reg(2) <= 0;
+                                score_reg(2) <= X"0";
                                 if score(1) = 9 then
-                                    score_reg(1) <= 0;
+                                    score_reg(1) <= X"0";
                                     if score(0) = 9 then
-                                        score_reg(0) <= 0;
+                                        score_reg(0) <= X"0";
                                     else
                                         score_reg(0) <= score(0) + 1;
                                     end if;
@@ -65,6 +65,7 @@ begin
                         end if;
                     else
                     score_reg(4) <= score(4) + 1;
+						  end if;
                 else
                     score_reg(5) <= score(5) + add_value;
                 end if;    

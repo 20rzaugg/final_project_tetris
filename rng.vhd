@@ -33,14 +33,14 @@ begin
 		if rst_l = '0' then
 			timer <= 0;
 			lfsr <= X"1FA";
-		end if;
-		if rising_edge(MAX10_CLK1_50) and KEY(0) /= '0' then
+		else if rising_edge(clk) and rst_l /= '0' then
 			if timer = 2500000 then
 				lfsr <= lfsr(10 downto 0) & bitt;
 				timer <= 0;
 			else
 				timer <= timer + 1;
 			end if;
+		end if;
 		end if;
 	end process;
 
