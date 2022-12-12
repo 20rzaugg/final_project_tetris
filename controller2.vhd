@@ -99,13 +99,14 @@ architecture behavioral of controller2 is
     
     signal add_value : unsigned(3 downto 0) := X"0";
     signal accumulate : std_logic := '0';
+	 signal next_accumulate : std_logic := '0';
 
     signal sound_selector : unsigned(2 downto 0) := "000";
     signal next_sound_selector : unsigned(2 downto 0) := "000";
     signal play_l : std_logic := '1';
     signal next_play_l : std_logic := '1';
     signal col_move : std_logic := '0';
-	signal next_col_move : std_logic := '0';
+	 signal next_col_move : std_logic := '0';
     signal block_settle : std_logic := '0';
     signal block_disappear : std_logic := '0';
     signal next_block_disappear : std_logic := '0';
@@ -119,8 +120,6 @@ architecture behavioral of controller2 is
 
     type row_positions_type is array(0 to 13) of unsigned(11 downto 0);
     signal row_positions : row_positions_type := (X"1B0", X"190", X"170", X"150", X"130", X"110", X"0F0", X"0D0", X"0B0", X"090", X"070", X"050", X"030", X"010");
-
-	 
 	 
 	 type MY_MEM is array(0 to 9) of unsigned(7 downto 0);
     signal sev_seg : MY_MEM := (X"C0", X"F9", X"A4", X"B0", X"99", X"92", X"83", X"F8", X"80", X"98");
@@ -200,11 +199,11 @@ begin
                 play_l <= next_play_l;
                 blockArray <= next_blockArray;
                 stack_heights <= next_stack_heights;
-				falling_block <= next_falling_block;
-				falling_block_y <= next_falling_block_y;
-				col_move <= next_col_move;
+					 falling_block <= next_falling_block;
+					 falling_block_y <= next_falling_block_y;
+					 col_move <= next_col_move;
                 sound_selector <= next_sound_selector;
-                accumulate <= not accumulate;
+                accumulate <= next_accumulate;
                 block_disappear <= next_block_disappear;
 			
             else
@@ -390,7 +389,7 @@ begin
                 else
                     next_state <= drop;
                     set_block <= '0';
-                    if fall_timer >= 500000 then
+                    if fall_timer >= 500000 then--stack_speeds(to_integer(stack_heights(to_integer(falling_block_col)))) then
                         next_falling_block_y <= falling_block_y + 1;
                         next_fall_timer <= 0;
                     else
@@ -498,6 +497,11 @@ begin
             end loop;
             next_stack_heights(j) <= x;
         end loop;
-        add_value <= to_unsigned(score_modifier, 4); --probably an error
+        add_value <= to_unsigned(score_modifier, 4);
+		  if score_modifier > 0 then
+			   next_accumulate <= '1';
+		  else
+		      next_accumulate <= '0';
+		  end if;
     end process;
 end architecture behavioral;
