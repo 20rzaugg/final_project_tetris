@@ -171,7 +171,6 @@ set_global_assignment -name VHDL_FILE tetris_types.vhd
 set_global_assignment -name VHDL_FILE tetris.vhd
 set_global_assignment -name VHDL_FILE singer.vhd
 set_global_assignment -name VHDL_FILE screen_manager.vhd
-set_global_assignment -name VHDL_FILE score.vhd
 set_global_assignment -name VHDL_FILE rng.vhd
 set_global_assignment -name VHDL_FILE lab8.vhd
 set_global_assignment -name VHDL_FILE Hsync.vhd

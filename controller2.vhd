@@ -127,7 +127,12 @@ architecture behavioral of controller2 is
 begin
 		
 		
-	 HEX0 <= sev_seg(to_integer(add_value));
+	 HEX0 <= sev_seg(to_integer(score(5)));
+	 HEX1 <= sev_seg(to_integer(score(4)));
+	 HEX2 <= sev_seg(to_integer(score(3)));
+	 HEX3 <= sev_seg(to_integer(score(2)));
+	 HEX4 <= sev_seg(to_integer(score(1)));
+	 HEX5 <= sev_seg(to_integer(score(0)));
 	 
 	 
     u0_accumulator : b10_accumulator port map (

@@ -10,6 +10,7 @@ entity b10_accumulator is port (
     add_value : in unsigned(3 downto 0);
     accumulate : in std_logic;
     score : buffer score_digits_array
+	 
 );
 end b10_accumulator;
 
