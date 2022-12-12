@@ -352,7 +352,7 @@ begin
 				if (x = 176 and y >= 16 and y <= 463) then
 					color <= White;
 				end if;
-				if (x = 464 and y >= 16 and y <= 463) then	
+				if (x = 465 and y >= 16 and y <= 463) then	
 					color <= White;
 				end if;
 				if (y = 464 and x >= 176 and x <= 464) then
