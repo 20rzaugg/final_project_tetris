@@ -50,10 +50,10 @@ architecture behavioral of screen_manager is
     );
     end component;
 	
-type colorme is array(0 to 5) of std_logic_vector(11 downto 0); --add more colors if necessary
-signal display : colorme := (X"000", X"FFF", X"F00", X"00F", X"080", X"FF0");
+type colorme is array(0 to 6) of std_logic_vector(11 downto 0); --add more colors if necessary
+signal display : colorme := (X"000", X"FFF", X"F00", X"00F", X"080", X"FF0", X"7F3");
 
-type colors is (Black, White, cRed, cBlue, cGreen, Yellow);
+type colors is (Black, White, cRed, cBlue, cGreen, Yellow, Mystery);
 signal color : colors;
 signal next_color : colors;
 signal boxColor : colors;
@@ -318,6 +318,8 @@ begin
 				next_color_index <= X"004";
 			when Yellow =>
 				next_color_index <= X"005";
+			when Mystery =>
+				next_color_index <= X"006";
 		end case;
 	end process;
 
@@ -411,7 +413,7 @@ begin
                                when X"4" =>
                                    color <= Yellow;
 										  when others =>
-												color <= Black;
+												color <= Mystery;
                            end case;
                        end if;
                        lh_X := lh_X + 16;
@@ -432,7 +434,7 @@ begin
                        when X"4" =>
                            color <= Yellow;
 					   when others =>
-						   color <= Black;
+						   color <= Mystery;
                    end case;
                end if;
 			end if;

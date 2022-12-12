@@ -95,12 +95,14 @@ architecture behavioral of controller2 is
     signal accumulate : std_logic := '0';
 
     signal sound_selector : unsigned(2 downto 0) := "000";
+    signal next_sound_selector : unsigned(2 downto 0) := "000";
     signal play_l : std_logic := '1';
     signal next_play_l : std_logic := '1';
     signal col_move : std_logic := '0';
-	 signal next_col_move : std_logic := '0';
+	signal next_col_move : std_logic := '0';
     signal block_settle : std_logic := '0';
     signal block_disappear : std_logic := '0';
+    signal next_block_disappear : std_logic := '0';
     signal game_over : std_logic := '0';
 
     signal fall_timer : integer := 0;
@@ -164,16 +166,19 @@ begin
     process(MAX10_CLK1_50, key(0)) begin
         if key(0) = '0' then
             state <= idle;
-            falling_block_col <= X"0";
-            falling_block <= X"0";
-            falling_block_y <= X"000";
+            falling_block_col <= falling_block_col;
+            fall_timer <= 0;
+            play_l <= '1';
             blockArray <= (others => (others => X"0"));
             stack_heights <= (others => X"0");
-            fall_timer <= 0;
-			--end if;
+            falling_block <= X"0";
+            falling_block_y <= X"000";
+            col_move <= '0';
+            sound_selector <= "000";
+            accumulate <= '0';
+            block_disappear <= '0';
         else 
 			if rising_edge(MAX10_CLK1_50) then
-			--if rising_edge(MAX10_clk1_50) and key(0) = '1' then
                 state <= next_state;
                 falling_block_col <= next_col;
                 fall_timer <= next_fall_timer;
@@ -183,8 +188,23 @@ begin
 				falling_block <= next_falling_block;
 				falling_block_y <= next_falling_block_y;
 				col_move <= next_col_move;
+                sound_selector <= next_sound_selector;
                 accumulate <= not accumulate;
-			end if;
+                block_disappear <= next_block_disappear;
+			
+            else
+                state <= state;
+                falling_block_col <= falling_block_col;
+                fall_timer <= fall_timer;
+                play_l <= play_l;
+                blockArray <= blockArray;
+                stack_heights <= stack_heights;
+				falling_block <= falling_block;
+				falling_block_y <= falling_block_y;
+				col_move <= col_move;
+                accumulate <= accumulate;
+                block_disappear <= block_disappear;
+            end if;
         end if;
     end process;
 
@@ -197,10 +217,10 @@ begin
                 --if the column next to the current column has blocks stacked higher than the block's current position, we can't move the block
                 if potPosition > X"1C7" and falling_block_y < row_positions(to_integer(stack_heights(1))) then
                     next_col <= X"1";
-						  next_col_move <= '1';
+					next_col_move <= '1';
                 else
                     next_col <= X"0";
-						  next_col_move <= '0';
+					next_col_move <= '0';
                 end if;
             when X"1" =>
                 if potPosition < X"1C7" and falling_block_y < row_positions(to_integer(stack_heights(0))) then
@@ -237,7 +257,7 @@ begin
                     next_col <= X"3";
 						  next_col_move <= '0';
                 end if;
-					 end if;
+				end if;
             when X"4" =>
                 if potPosition < X"71C" and falling_block_y < row_positions(to_integer(stack_heights(3))) then
                     next_col <= X"3";
@@ -249,7 +269,7 @@ begin
                     next_col <= X"4";
 						  next_col_move <= '0';
                 end if;
-					 end if;
+				end if;
             when X"5" =>
                 if potPosition < X"8E3" and falling_block_y < row_positions(to_integer(stack_heights(4))) then
                     next_col <= X"4";
@@ -261,7 +281,7 @@ begin
                     next_col <= X"5";
 						  next_col_move <= '0';
                 end if;
-					 end if;
+				end if;
             when X"6" =>
                 if potPosition < X"AAB" and falling_block_y < row_positions(to_integer(stack_heights(5))) then
                     next_col <= X"5";
@@ -303,25 +323,25 @@ begin
     process(block_disappear, block_settle, game_over, col_move, sound_selector, play_l) begin
         --game over sound has the highest priority
         if game_over = '1' then
-            sound_selector <= "100";
+            next_sound_selector <= "100";
             next_play_l <= '0';
         else
             --block disappear has the second highest priority
             if block_disappear = '1' then
-                sound_selector <= "011";
+                next_sound_selector <= "011";
                 next_play_l <= '0';
             else
                 --next priority is the block settle sound
                 if block_settle = '1' then
-                    sound_selector <= "010";
+                    next_sound_selector <= "010";
                     next_play_l <= '0';
                 else
                     --last priority is the column move sound
                     if col_move = '1' then
-                        sound_selector <= "001";
+                        next_sound_selector <= "001";
                         next_play_l <= '0';
                     else
-                        sound_selector <= "000";
+                        next_sound_selector <= "000";
                         next_play_l <= '1';
                     end if;
                 end if;
@@ -340,22 +360,22 @@ begin
                     next_falling_block_y <= X"000";
                 else
                     next_state <= idle;
-						  next_falling_block <= X"0";
-						  next_falling_block_y <= X"000";
+					next_falling_block <= X"0";
+					next_falling_block_y <= X"000";
                 end if;
             when drop =>
-                if falling_block_y >= row_positions(to_integer(stack_heights(to_integer(falling_block_col)+1))) then
-                    --if row_positions(to_integer(stack_heights(to_integer(falling_block_col)))) >= 12 then
-						  --	   next_state <= gameover;
-						  --		game_over <= '1';
-						  --else
-							   next_state <= set;
-							   set_block <= '1';
-						  --end if;
+                if falling_block_y >= row_positions(to_integer(stack_heights(to_integer(falling_block_col))+1)) then
+                    if stack_heights(to_integer(falling_block_col)) >= 12 then
+						next_state <= gameover;
+						game_over <= '1';
+					else
+						next_state <= set;
+						set_block <= '1';
+					end if;
                 else
                     next_state <= drop;
                     set_block <= '0';
-                    if fall_timer >= 1000000 then
+                    if fall_timer >= 500000 then
                         next_falling_block_y <= falling_block_y + 1;
                         next_fall_timer <= 0;
                     else
@@ -384,6 +404,7 @@ begin
     begin
         next_blockArray <= blockArray;
         score_modifier := 0;
+        next_block_disappear <= '0';
         if(set_block = '1') then
             next_blockArray(to_integer(stack_heights(to_integer(falling_block_col))), to_integer(falling_block_col)) <= falling_block;
             next_stack_heights(to_integer(falling_block_col)) <= stack_heights(to_integer(falling_block_col));
@@ -400,6 +421,7 @@ begin
                             next_blockArray(i,j+2) <= X"0";
 									 next_stack_heights(j+2) <= stack_heights(j+2) - 1;
                             score_modifier := score_modifier + 3;
+                            next_block_disappear <= '1';
                             if j < 6 then
                                 if blockArray(i,j) = blockArray(i,j+3) then
                                     next_blockArray(i, j+3) <= X"0";
@@ -427,6 +449,7 @@ begin
                             next_blockArray(i+1,j) <= X"0";
                             next_blockArray(i+2,j) <= X"0";
                             score_modifier := score_modifier + 3;
+                            next_block_disappear <= '1';
                             if i < 9 then
                                 if blockArray(i,j) = blockArray(i+3,j) then
                                     next_blockArray(i+3, j) <= X"0";
@@ -440,14 +463,14 @@ begin
             --check for columns that need to be shifted
             for j in 0 to 8 loop
                 for i in 0 to 11 loop
-                    if blockArray(i,j) = X"0" then
-                        for k in i to 11 loop
-                            if blockArray(k,j) /= X"0" then
-                                next_blockArray(i,j) <= blockArray(k,j);
-                                next_blockArray(k,j) <= X"0";
-                            end if;
-                        end loop;
+						if i < 11 then
+                    if blockArray(i,j) = X"0" and blockArray(i+1, j) /= X"0" then
+                       if blockArray(i+1,j) /= X"0" then
+                           next_blockArray(i,j) <= blockArray(i+1,j);
+                           next_blockArray(i+1,j) <= X"0";
+                       end if;
                     end if;
+						end if;
                 end loop;
             end loop;
         end if;
