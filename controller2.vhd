@@ -9,6 +9,12 @@ entity controller2 is port (
 	ADC_CLK_10 : in std_logic;
 	KEY : in std_logic_vector(1 downto 0);
 	SW : in std_logic_vector(9 downto 0);
+	HEX0 : out unsigned(7 downto 0);
+	HEX1 : out unsigned(7 downto 0);
+	HEX2 : out unsigned(7 downto 0);
+	HEX3 : out unsigned(7 downto 0);
+	HEX4 : out unsigned(7 downto 0);
+	HEX5 : out unsigned(7 downto 0);
 	VGA_B : out std_logic_vector(3 downto 0);
 	VGA_G : out std_logic_vector(3 downto 0);
 	VGA_HS : out std_logic;
@@ -114,8 +120,17 @@ architecture behavioral of controller2 is
     type row_positions_type is array(0 to 13) of unsigned(11 downto 0);
     signal row_positions : row_positions_type := (X"1B0", X"190", X"170", X"150", X"130", X"110", X"0F0", X"0D0", X"0B0", X"090", X"070", X"050", X"030", X"010");
 
+	 
+	 
+	 type MY_MEM is array(0 to 9) of unsigned(7 downto 0);
+    signal sev_seg : MY_MEM := (X"C0", X"F9", X"A4", X"B0", X"99", X"92", X"83", X"F8", X"80", X"98");
 
 begin
+		
+		
+	 HEX0 <= sev_seg(to_integer(add_value));
+	 
+	 
     u0_accumulator : b10_accumulator port map (
         clk => MAX10_CLK1_50,
         rst_l => key(0),
