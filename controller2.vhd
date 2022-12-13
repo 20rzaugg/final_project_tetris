@@ -27,14 +27,23 @@ end controller2;
 
 architecture behavioral of controller2 is
     
-    component b10_accumulator is port (
-        clk : in std_logic;
-        rst_l : in std_logic;
-        add_value : in unsigned(3 downto 0);
-        accumulate : in std_logic;
-        score : buffer score_digits_array
-    );
-    end component b10_accumulator;
+--    component b10_accumulator is port (
+--        clk : in std_logic;
+--        rst_l : in std_logic;
+--        add_value : in unsigned(3 downto 0);
+--        accumulate : in std_logic;
+--        score : buffer score_digits_array
+--    );
+--    end component b10_accumulator;
+
+	 component acum_test is port (
+	    clk : in std_logic;
+		 rst_l : in std_logic; --rst_l
+		 add : in std_logic;
+	    add_value : in unsigned(3 downto 0);
+	    score : out score_digits_array
+	 );
+	 end component acum_test;
 
     component singer is port (
        clk_50 : in std_logic;
@@ -111,6 +120,7 @@ architecture behavioral of controller2 is
     signal block_disappear : std_logic := '0';
     signal next_block_disappear : std_logic := '0';
     signal game_over : std_logic := '0';
+	 signal next_game_over : std_logic := '0';
 
     signal fall_timer : integer := 0;
     signal next_fall_timer : integer := 0;
@@ -135,13 +145,21 @@ begin
 	 HEX5 <= sev_seg(to_integer(score(0)));
 	 
 	 
-    u0_accumulator : b10_accumulator port map (
-        clk => MAX10_CLK1_50,
-        rst_l => key(0),
-        add_value => add_value,
-        accumulate => accumulate,
-        score => score
-    );
+--    u0_accumulator : b10_accumulator port map (
+--        clk => MAX10_CLK1_50,
+--        rst_l => key(0),
+--        add_value => add_value,
+--        accumulate => accumulate,
+--        score => score
+--    );
+
+	 u0_accumulator : acum_test port map (
+	     clk => MAX10_CLK1_50,
+		  rst_l => key(0),
+		  add => accumulate,
+		  add_value => add_value,
+		  score => score
+	 );
 
     u1_singer : singer port map (
         clk_50 => MAX10_CLK1_50,
@@ -196,6 +214,7 @@ begin
             sound_selector <= "000";
             accumulate <= '0';
             block_disappear <= '0';
+				game_over <= '0';
         else 
 			if rising_edge(MAX10_CLK1_50) then
                 state <= next_state;
@@ -210,6 +229,7 @@ begin
                 sound_selector <= next_sound_selector;
                 accumulate <= next_accumulate;
                 block_disappear <= next_block_disappear;
+					 game_over <= next_game_over;
 			
             else
                 state <= state;
@@ -218,11 +238,12 @@ begin
                 play_l <= play_l;
                 blockArray <= blockArray;
                 stack_heights <= stack_heights;
-				falling_block <= falling_block;
-				falling_block_y <= falling_block_y;
-				col_move <= col_move;
+					 falling_block <= falling_block;
+					 falling_block_y <= falling_block_y;
+					 col_move <= col_move;
                 accumulate <= accumulate;
                 block_disappear <= block_disappear;
+					 game_over <= game_over;
             end if;
         end if;
     end process;
@@ -334,7 +355,8 @@ begin
 						  next_col_move <= '0';
 					 end if;
             when others =>
-                next_col <= X"0";
+                next_col <= falling_block_col;
+					 next_col_move <= '0';
 			end case;
     end process;
     
@@ -369,8 +391,12 @@ begin
     end process;
 
     --game state manager and falling block logic
-    process(state, key, falling_block, falling_block_col, falling_block_y, stack_heights, rand, row_positions, fall_timer, stack_heights, falling_block, falling_block_col) begin
-        case state is
+    process(state, key, falling_block, falling_block_col, falling_block_y, rand, row_positions, fall_timer, stack_heights) begin
+        next_falling_block <= falling_block;
+		  next_falling_block_y <= falling_block_y;
+		  next_fall_timer <= fall_timer;
+		  block_settle <= '0';
+		  case state is
             when idle =>
                 -- if idle, start the game if the start button is pressed
                 if key(1) = '0' then
@@ -379,14 +405,14 @@ begin
                     next_falling_block_y <= X"000";
                 else
                     next_state <= idle;
-					next_falling_block <= X"0";
-					next_falling_block_y <= X"000";
+						  next_falling_block <= X"0";
+						  next_falling_block_y <= X"000";
                 end if;
             when drop =>
-                if falling_block_y >= row_positions(to_integer(stack_heights(to_integer(falling_block_col))+1)) then
+                if falling_block_y >= row_positions(to_integer(stack_heights(to_integer(falling_block_col)))) then
                     if stack_heights(to_integer(falling_block_col)) >= 12 then
 						next_state <= gameover;
-						game_over <= '1';
+						next_game_over <= '1';
 					else
 						next_state <= set;
 						set_block <= '1';
@@ -394,7 +420,7 @@ begin
                 else
                     next_state <= drop;
                     set_block <= '0';
-                    if fall_timer >= 500000 then--stack_speeds(to_integer(stack_heights(to_integer(falling_block_col)))) then
+                    if fall_timer >= 200000 then--stack_speeds(to_integer(stack_heights(to_integer(falling_block_col)))) then
                         next_falling_block_y <= falling_block_y + 1;
                         next_fall_timer <= 0;
                     else
@@ -412,7 +438,7 @@ begin
 					 next_falling_block <= X"0";
                 next_state <= idle;
 					 next_fall_timer <= 0;
-					 game_over <= '0';
+					 next_game_over <= '0';
         end case;
     end process;
 
@@ -432,25 +458,26 @@ begin
             for i in 0 to 11 loop
                 for j in 0 to 8 loop
                     if j < 7 then
-                        if blockArray(i,j) = blockArray(i,j+1) and blockArray(i,j) = blockArray(i,j+2) then
+                        if blockArray(i,j) = blockArray(i,j+1) and blockArray(i,j) = blockArray(i,j+2) and blockArray(i,j) /= 0 then
                             next_blockArray(i,j) <= X"0";
-									 next_stack_heights(j) <= stack_heights(j) - 1;
                             next_blockArray(i,j+1) <= X"0";
-									 next_stack_heights(j+2) <= stack_heights(j+1) - 1;
                             next_blockArray(i,j+2) <= X"0";
-									 next_stack_heights(j+2) <= stack_heights(j+2) - 1;
-                            score_modifier := score_modifier + 3;
+                            if score_modifier < 3 then
+										score_modifier := 3;
+									 end if;
                             next_block_disappear <= '1';
                             if j < 6 then
                                 if blockArray(i,j) = blockArray(i,j+3) then
                                     next_blockArray(i, j+3) <= X"0";
-												next_stack_heights(j+3) <= stack_heights(j+3) - 1;
-                                    score_modifier := score_modifier + 1;
+                                    if score_modifier < 4 then
+												    score_modifier := 4;
+										      end if;
                                     if j < 5 then
                                         if blockArray(i,j) = blockArray(i,j+4) then
                                             next_blockArray(i, j+4) <= X"0";
-														  next_stack_heights(j+4) <= stack_heights(j+4) - 1;
-                                            score_modifier := score_modifier + 1;
+														  if score_modifier < 5 then
+															  score_modifier := 5;
+														  end if;
                                         end if;
                                     end if;
                                 end if;
@@ -463,16 +490,20 @@ begin
             for j in 0 to 8 loop
                 for i in 0 to 11 loop
                     if i < 10 then
-                        if blockArray(i,j) = blockArray(i+1,j) and blockArray(i,j) = blockArray(i+2,j) then
+                        if blockArray(i,j) = blockArray(i+1,j) and blockArray(i,j) = blockArray(i+2,j) and blockArray(i,j) /= 0 then
                             next_blockArray(i,j) <= X"0";
                             next_blockArray(i+1,j) <= X"0";
                             next_blockArray(i+2,j) <= X"0";
-                            score_modifier := score_modifier + 3;
+                            if score_modifier < 3 then
+										  score_modifier := 3;
+									 end if;
                             next_block_disappear <= '1';
                             if i < 9 then
                                 if blockArray(i,j) = blockArray(i+3,j) then
                                     next_blockArray(i+3, j) <= X"0";
-                                    score_modifier := score_modifier + 1;
+												if score_modifier < 4 then
+													score_modifier := 4;
+												end if;
                                 end if;
                             end if;
                         end if;

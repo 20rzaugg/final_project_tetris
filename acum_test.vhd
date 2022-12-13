@@ -1,19 +1,18 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+library work;
+use work.tetris_types.all;
+
 
 entity acum_test is
 		
 	port (
-		MAX10_CLK1_50 : in std_logic;
-		KEY : in std_logic_vector(1 downto 0); --rst_l --add
-		SW : in unsigned(9 downto 0);
-		HEX0 : out unsigned(7 downto 0);
-		HEX1 : out unsigned(7 downto 0);
-		HEX2 : out unsigned(7 downto 0);
-		HEX3 : out unsigned(7 downto 0);
-		HEX4 : out unsigned(7 downto 0);
-		HEX5 : out unsigned(7 downto 0)
+		clk : in std_logic;
+		rst_l : in std_logic; --rst_l
+		add : in std_logic;
+		add_value : in unsigned(3 downto 0);
+		score : out score_digits_array
 	);
 	
 end entity acum_test;
@@ -21,7 +20,7 @@ end entity acum_test;
 architecture behavioral of acum_test is 
 	
 	--STATE SIGNALS
-	type state_type is (ADD, STAY, DELAY);
+	type state_type is (ADD_S, STAY, DELAY);
 	signal cur_state : state_type;
 	signal next_state : state_type;
 	
@@ -33,46 +32,46 @@ architecture behavioral of acum_test is
 
 begin
 
-		HEX0 <= sev_seg(to_integer(sum(3 downto 0)));
-		HEX1 <= sev_seg(to_integer(sum(7 downto 4)));
-		HEX2 <= sev_seg(to_integer(sum(11 downto 8)));
-		HEX3 <= sev_seg(to_integer(sum(15 downto 12)));
-		HEX4 <= sev_seg(to_integer(sum(19 downto 16)));
-		Hex5 <= sev_seg(to_integer(sum(23 downto 20)));
+		score(5) <= sum(3 downto 0);
+		score(4) <= sum(7 downto 4);
+		score(3) <= sum(11 downto 8);
+		score(2) <= sum(15 downto 12);
+		score(1) <= sum(19 downto 16);
+		score(0) <= sum(23 downto 20);
 		
 		--LEDR <= SW; --sets LEDS to switches. This is all we need to do with LEDS.
 		
 	
 	
-	process (MAX10_CLK1_50)
+	process (rst_l, clk)
 	begin
-		if rising_edge(MAX10_CLK1_50) then
+		if rst_l = '0' then
+			cur_state <= STAY;
+		   sum <= (others => '0');
+		else if rising_edge(clk) then
 			cur_state <= next_state;
 			sum <= next_sum;
+		end if;
 		end if;	
 	end process;
 	
-	process(cur_state, KEY, sum, SW)
+	process(cur_state, add, sum, add_value)
 		begin
-		if KEY(0) = '0' then
-			next_state <= STAY;
-			next_sum <= (others => '0');
-		else
 			next_sum <= sum;
 			case cur_state is
 				when STAY =>
-					if key(1) = '0' then
-						next_state <= ADD;
+					if add = '1' then
+						next_state <= ADD_S;
 					else
 						next_state <= STAY;
 					end if;
-				when ADD =>
+				when ADD_S =>
 					--next_sum <= sum + SW;
-					next_sum(3 downto 0) <= sum(3 downto 0) + sw(3 downto 0);--b"0001";
-				if sum(3 downto 0) + sw(3 downto 0) >= X"A" then
+					next_sum(3 downto 0) <= sum(3 downto 0) + add_value;--b"0001";
+				if sum(3 downto 0) + add_value >= X"A" then
 				--if sum(3 downto 0) = X"9" then
 					next_sum(7 downto 4) <= sum(7 downto 4) + b"0001";
-					next_sum(3 downto 0) <= sum(3 downto 0) + sw(3 downto 0) - X"A";--(others => '0');
+					next_sum(3 downto 0) <= sum(3 downto 0) + add_value - X"A";--(others => '0');
 					if sum(7 downto 4) = X"9" then
 						next_sum(11 downto 8) <= sum(11 downto 8) + b"0001";
 						next_sum(7 downto 4) <= (others => '0');
@@ -95,13 +94,12 @@ begin
 				end if;
 					next_state <= DELAY;
 				when DELAY =>
-					if key(1) = '0' then
+					if add = '1' then
 						next_state <= DELAY;
 					else
 						next_state <= STAY;
 					end if;
 				
 			end case;
-		end if;	
 	end process;
 end architecture behavioral;

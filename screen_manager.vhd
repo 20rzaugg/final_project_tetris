@@ -63,7 +63,6 @@ signal Hpos : unsigned(11 downto 0);
 signal Vpos : unsigned(11 downto 0);
 signal pclk : std_logic; --pixel clock, 25Mhz
 
-signal score_digits : score_digits_array;
 signal x : unsigned(11 downto 0);
 signal y : unsigned(11 downto 0);
 
@@ -342,7 +341,7 @@ begin
 	
 
 	--set the future
-	process(Hpos, x, y, Vpos, numbers, score_digits, blockArray, falling_block, falling_block_y, falling_block_col) 
+	process(Hpos, x, y, Vpos, numbers, score_in, blockArray, falling_block, falling_block_y, falling_block_col) 
         variable lh_X : integer := 0;
         variable lh_Y : integer := 0;
     begin
@@ -362,37 +361,37 @@ begin
 				end if;
 				--hundred_thousands digit
 				if (y >= 231 and y < 248 and x >= 506 and x <= 517) then
-					if (numbers(to_integer(score_digits(0)), to_integer(y-X"0E7"), to_integer(x-X"1FA")) = '1') then
+					if (numbers(to_integer(score_in(0)), to_integer(y-X"0E7"), to_integer(x-X"1FA")) = '1') then
 						color <= White;
 					end if;
 				end if;
 				--ten_thousands digit
 				if (y >= 231 and y < 248 and x >= 522 and x <= 533) then
-					if (numbers(to_integer(score_digits(1)), to_integer(y-X"0E7"), to_integer(x-X"20A")) = '1') then
+					if (numbers(to_integer(score_in(1)), to_integer(y-X"0E7"), to_integer(x-X"20A")) = '1') then
 						color <= White;
 					end if;
 				end if;
 				--thousands digit
 				if (y >= 231 and y < 248 and x >= 538 and x <= 549) then
-					if numbers(to_integer(score_digits(2)), to_integer(y-X"0E7"), to_integer(x-X"21A")) = '1' then
+					if numbers(to_integer(score_in(2)), to_integer(y-X"0E7"), to_integer(x-X"21A")) = '1' then
 						color <= White;
 					end if;
 				end if;
 				--hundreds digit
 				if (y >= 231 and y < 248 and x >= 554 and x <= 565) then
-					if (numbers(to_integer(score_digits(3)), to_integer(y-X"0E7"), to_integer(x-X"22A")) = '1') then
+					if (numbers(to_integer(score_in(3)), to_integer(y-X"0E7"), to_integer(x-X"22A")) = '1') then
 						color <= White;
 					end if;
 				end if;
 				--tens digit
 				if (y >= 231 and y < 248 and x >= 570 and x <= 581) then
-					if (numbers(to_integer(score_digits(4)), to_integer(y-X"0E7"), to_integer(x-X"23A")) = '1') then
+					if (numbers(to_integer(score_in(4)), to_integer(y-X"0E7"), to_integer(x-X"23A")) = '1') then
 						color <= White;
 					end if;
 				end if;
 				--ones digit
 				if (y >= 231 and y < 248 and x >= 586 and x <= 597) then
-					if (numbers(to_integer(score_digits(5)), to_integer(y-X"0E7"), to_integer(x-X"24A")) = '1') then
+					if (numbers(to_integer(score_in(5)), to_integer(y-X"0E7"), to_integer(x-X"24A")) = '1') then
 						color <= White;
 					end if;
 				end if;
