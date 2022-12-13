@@ -279,7 +279,6 @@ set_instance_assignment -name IO_STANDARD "3.3 V SCHMITT TRIGGER" -to ARDUINO_RE
 set_global_assignment -name VHDL_FILE acum_test.vhd
 set_global_assignment -name VHDL_FILE potADC.vhd
 set_global_assignment -name VHDL_FILE controller2.vhd
-set_global_assignment -name VHDL_FILE b10_accumulator.vhd
 set_global_assignment -name VHDL_FILE Vsync.vhd
 set_global_assignment -name VHDL_FILE tetris_types.vhd
 set_global_assignment -name VHDL_FILE tetris.vhd

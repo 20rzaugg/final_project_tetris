@@ -135,7 +135,8 @@ architecture behavioral of controller2 is
     signal sev_seg : MY_MEM := (X"C0", X"F9", X"A4", X"B0", X"99", X"92", X"83", X"F8", X"80", X"98");
 
 begin
-		
+	 
+	 --add_value <= X"0";
 		
 	 HEX0 <= sev_seg(to_integer(score(5)));
 	 HEX1 <= sev_seg(to_integer(score(4)));
@@ -447,6 +448,7 @@ begin
         variable score_modifier : integer := 0;
         variable x : unsigned(3 downto 0) := X"0";
     begin
+		  add_value <= X"0";
         next_blockArray <= blockArray;
         score_modifier := 0;
         next_block_disappear <= '0';
@@ -462,22 +464,25 @@ begin
                             next_blockArray(i,j) <= X"0";
                             next_blockArray(i,j+1) <= X"0";
                             next_blockArray(i,j+2) <= X"0";
-                            if score_modifier < 3 then
-										score_modifier := 3;
-									 end if;
+                            --if score_modifier < 3 then
+									 --	score_modifier := 3;
+									 --end if;
+									 add_value <= X"3";
                             next_block_disappear <= '1';
                             if j < 6 then
                                 if blockArray(i,j) = blockArray(i,j+3) then
                                     next_blockArray(i, j+3) <= X"0";
-                                    if score_modifier < 4 then
-												    score_modifier := 4;
-										      end if;
+                                    --if score_modifier < 4 then
+												--    score_modifier := 4;
+										      --end if;
+												add_value <= X"4";
                                     if j < 5 then
                                         if blockArray(i,j) = blockArray(i,j+4) then
                                             next_blockArray(i, j+4) <= X"0";
-														  if score_modifier < 5 then
-															  score_modifier := 5;
-														  end if;
+														  --if score_modifier < 5 then
+														  --  score_modifier := 5;
+														  --end if;
+														  add_value <= X"4";
                                         end if;
                                     end if;
                                 end if;
@@ -494,16 +499,18 @@ begin
                             next_blockArray(i,j) <= X"0";
                             next_blockArray(i+1,j) <= X"0";
                             next_blockArray(i+2,j) <= X"0";
-                            if score_modifier < 3 then
-										  score_modifier := 3;
-									 end if;
+                            --if score_modifier < 3 then
+									 --	  score_modifier := 3;
+									 --end if;
+									 add_value <= X"3";
                             next_block_disappear <= '1';
                             if i < 9 then
                                 if blockArray(i,j) = blockArray(i+3,j) then
                                     next_blockArray(i+3, j) <= X"0";
-												if score_modifier < 4 then
-													score_modifier := 4;
-												end if;
+												--if score_modifier < 4 then
+												--	score_modifier := 4;
+												--end if;
+												add_value <= X"4";
                                 end if;
                             end if;
                         end if;
@@ -533,7 +540,7 @@ begin
             end loop;
             next_stack_heights(j) <= x;
         end loop;
-        add_value <= to_unsigned(score_modifier, 4);
+        --add_value <= to_unsigned(score_modifier, 4);
 		  if score_modifier > 0 then
 			   next_accumulate <= '1';
 		  else
