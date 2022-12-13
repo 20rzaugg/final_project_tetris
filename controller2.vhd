@@ -107,6 +107,7 @@ architecture behavioral of controller2 is
     signal next_state : gamestate_type := idle;
     
     signal add_value : unsigned(3 downto 0) := X"0";
+	 signal next_add_value : unsigned(3 downto 0) := X"0";
     signal accumulate : std_logic := '0';
 	 signal next_accumulate : std_logic := '0';
 
@@ -116,7 +117,6 @@ architecture behavioral of controller2 is
     signal next_play_l : std_logic := '1';
     signal col_move : std_logic := '0';
 	 signal next_col_move : std_logic := '0';
-    signal block_settle : std_logic := '0';
     signal block_disappear : std_logic := '0';
     signal next_block_disappear : std_logic := '0';
     signal game_over : std_logic := '0';
@@ -216,6 +216,7 @@ begin
             accumulate <= '0';
             block_disappear <= '0';
 				game_over <= '0';
+				add_value <= X"0";
         else 
 			if rising_edge(MAX10_CLK1_50) then
                 state <= next_state;
@@ -231,6 +232,7 @@ begin
                 accumulate <= next_accumulate;
                 block_disappear <= next_block_disappear;
 					 game_over <= next_game_over;
+					 add_value <= next_add_value;
 			
             else
                 state <= state;
@@ -245,6 +247,7 @@ begin
                 accumulate <= accumulate;
                 block_disappear <= block_disappear;
 					 game_over <= game_over;
+					 add_value <= add_value;
             end if;
         end if;
     end process;
@@ -362,8 +365,9 @@ begin
     end process;
     
     --checks if we need to play a sound
-    process(block_disappear, block_settle, game_over, col_move, sound_selector, play_l) begin
+    process(block_disappear, set_block, game_over, col_move, sound_selector, play_l) begin
         --game over sound has the highest priority
+		  next_sound_selector <= "000";
         if game_over = '1' then
             next_sound_selector <= "100";
             next_play_l <= '0';
@@ -374,7 +378,7 @@ begin
                 next_play_l <= '0';
             else
                 --next priority is the block settle sound
-                if block_settle = '1' then
+                if set_block = '1' then
                     next_sound_selector <= "010";
                     next_play_l <= '0';
                 else
@@ -396,9 +400,9 @@ begin
         next_falling_block <= falling_block;
 		  next_falling_block_y <= falling_block_y;
 		  next_fall_timer <= fall_timer;
-		  block_settle <= '0';
 		  case state is
             when idle =>
+					 set_block <= '0';
                 -- if idle, start the game if the start button is pressed
                 if key(1) = '0' then
                     next_state <= drop;
@@ -408,36 +412,37 @@ begin
                     next_state <= idle;
 						  next_falling_block <= X"0";
 						  next_falling_block_y <= X"000";
+						  next_game_over <= '0';
                 end if;
             when drop =>
                 if falling_block_y >= row_positions(to_integer(stack_heights(to_integer(falling_block_col)))) then
                     if stack_heights(to_integer(falling_block_col)) >= 12 then
-						next_state <= gameover;
-						next_game_over <= '1';
-					else
+						      next_state <= gameover;
+						      next_game_over <= '1';
+					 else
 						next_state <= set;
 						set_block <= '1';
 					end if;
-                else
+               else
                     next_state <= drop;
                     set_block <= '0';
-                    if fall_timer >= 200000 then--stack_speeds(to_integer(stack_heights(to_integer(falling_block_col)))) then
+                    if fall_timer >= 170000 then--stack_speeds(to_integer(stack_heights(to_integer(falling_block_col)))) then
                         next_falling_block_y <= falling_block_y + 1;
                         next_fall_timer <= 0;
                     else
                         next_fall_timer <= fall_timer + 1;
-                        block_settle <= '1';
+                        
                     end if;
                 end if;
             when set =>
+					 set_block <= '0';
                 next_state <= drop;
                 next_falling_block <= unsigned(rand);
                 next_falling_block_y <= X"000";
-                block_settle <= '0';
             when gameover =>
 					 next_falling_block_y <= X"000";
 					 next_falling_block <= X"0";
-                next_state <= idle;
+                next_state <= gameover;
 					 next_fall_timer <= 0;
 					 next_game_over <= '0';
         end case;
@@ -448,7 +453,7 @@ begin
         variable score_modifier : integer := 0;
         variable x : unsigned(3 downto 0) := X"0";
     begin
-		  add_value <= X"0";
+		  --add_value <= X"3";
         next_blockArray <= blockArray;
         score_modifier := 0;
         next_block_disappear <= '0';
@@ -464,25 +469,25 @@ begin
                             next_blockArray(i,j) <= X"0";
                             next_blockArray(i,j+1) <= X"0";
                             next_blockArray(i,j+2) <= X"0";
-                            --if score_modifier < 3 then
-									 --	score_modifier := 3;
-									 --end if;
-									 add_value <= X"3";
+                            if score_modifier < 3 then
+									 	score_modifier := 3;
+									 end if;
+									 --add_value <= X"3";
                             next_block_disappear <= '1';
                             if j < 6 then
                                 if blockArray(i,j) = blockArray(i,j+3) then
                                     next_blockArray(i, j+3) <= X"0";
-                                    --if score_modifier < 4 then
-												--    score_modifier := 4;
-										      --end if;
-												add_value <= X"4";
+                                    if score_modifier < 4 then
+												    score_modifier := 4;
+										      end if;
+												--add_value <= X"4";
                                     if j < 5 then
                                         if blockArray(i,j) = blockArray(i,j+4) then
                                             next_blockArray(i, j+4) <= X"0";
-														  --if score_modifier < 5 then
-														  --  score_modifier := 5;
-														  --end if;
-														  add_value <= X"4";
+														  if score_modifier < 5 then
+														    score_modifier := 5;
+														  end if;
+														  --add_value <= X"4";
                                         end if;
                                     end if;
                                 end if;
@@ -499,18 +504,18 @@ begin
                             next_blockArray(i,j) <= X"0";
                             next_blockArray(i+1,j) <= X"0";
                             next_blockArray(i+2,j) <= X"0";
-                            --if score_modifier < 3 then
-									 --	  score_modifier := 3;
-									 --end if;
-									 add_value <= X"3";
+                            if score_modifier < 3 then
+									 	  score_modifier := 3;
+									 end if;
+									 --add_value <= X"3";
                             next_block_disappear <= '1';
                             if i < 9 then
                                 if blockArray(i,j) = blockArray(i+3,j) then
                                     next_blockArray(i+3, j) <= X"0";
-												--if score_modifier < 4 then
-												--	score_modifier := 4;
-												--end if;
-												add_value <= X"4";
+												if score_modifier < 4 then
+													score_modifier := 4;
+												end if;
+												--add_value <= X"4";
                                 end if;
                             end if;
                         end if;
@@ -540,11 +545,15 @@ begin
             end loop;
             next_stack_heights(j) <= x;
         end loop;
-        --add_value <= to_unsigned(score_modifier, 4);
-		  if score_modifier > 0 then
-			   next_accumulate <= '1';
-		  else
-		      next_accumulate <= '0';
-		  end if;
+        next_add_value <= to_unsigned(score_modifier, 4);
     end process;
+	 
+	 process(add_value, next_add_value) begin
+		if add_value /= next_add_value and next_add_value /= 0 then
+			next_accumulate <= '1';
+		else
+			next_accumulate <= '0';
+		end if;
+	end process;
+	 
 end architecture behavioral;

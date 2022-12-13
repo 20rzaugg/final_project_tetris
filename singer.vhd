@@ -127,16 +127,16 @@ architecture behavioral of singer is
 	type game_over_beats_type is array (0 to 14) of unsigned(3 downto 0);
 	signal game_over_beats : game_over_beats_type := (
 		X"1", -- 1/4 C5
-		X"3", -- 3/4 rst
+		X"2", -- 3/4 rst
 		X"1", -- 1/4 G4
-		X"3", -- 3/4 rst
+		X"2", -- 3/4 rst
 		X"1", -- 1/4 E4
 		X"2", -- 2/4 rst
 		X"2", -- 2/4 A4
 		X"1",  -- 1/4 B4
 		X"1",  -- 1/4 A4
-		X"1",  -- 1/4 rst
-		X"3",  -- 3/4 G#4
+		X"0",  -- 1/4 rst
+		X"2",  -- 3/4 G#4
 		X"2",  -- 2/4 A#4
 		X"2",  -- 2/4 G#4
 		X"1",  -- 1/4 rst
@@ -156,7 +156,7 @@ architecture behavioral of singer is
 	signal beat : unsigned(3 downto 0) := X"0";
 	signal next_beat : unsigned (3 downto 0) := X"0";
 
-	type state_type is (idle, move, settle, disappear, game_over, debounce);
+	type state_type is (idle, move, settle, disappear, game_over, debounce, setdelay);
 	signal state : state_type := idle;
 	signal next_state : state_type := idle;
 
@@ -238,70 +238,102 @@ begin
 						next_beatCounter <= (others => '0');
 						next_state <= debounce;
 					else
-						next_beatCounter <= beatCounter + 1;
-						next_state <= move;
+						case sound_selector is
+							when "000" =>
+								next_beatCounter <= beatCounter + 1;
+								next_state <= move;
+							when "001" =>
+								next_beatCounter <= beatCounter + 1;
+								next_state <= move;
+							when "010" =>
+								next_beatCounter <= (others => '0');
+								next_state <= settle;
+							when "011" =>
+								next_beatCounter <= (others => '0');
+								next_state <= disappear;
+							when "100" =>
+								next_beatCounter <= (others => '0');
+								next_state <= game_over;
+							when others =>
+								next_state <= move;
+						end case;
 					end if;
 				when settle =>
-					--C2, rest, C2
+					--long C2
 					next_game_over_index <= (others => '0');
 					next_beat <= (others => '0');
-					case to_integer(beatCounter) is
-						when 0 to 10000000 =>
-							note_index <= X"10";
-							next_beatCounter <= beatCounter + 1;
-							next_state <= settle;
-						when 10000001 to 15000000 =>
-							note_index <= X"00";
-							next_beatCounter <= beatCounter + 1;
-							next_state <= settle;
-						when 15000001 to 25000000 =>
-							note_index <= X"10";
-							next_beatCounter <= beatCounter + 1;
-							next_state <= settle;
-						when others =>
-							note_index <= X"00";
-							next_beatCounter <= (others => '0');
-							next_state <= debounce;
-					end case;
+					if beatCounter < 12000000 then
+						note_index <= X"10";
+						case sound_selector is
+							when "000" =>
+								next_beatCounter <= beatCounter + 1;
+								next_state <= settle;
+							when "001" =>
+								next_beatCounter <= beatCounter + 1;
+								next_state <= settle;
+							when "010" =>
+								next_beatCounter <= beatCounter + 1;
+								next_state <= settle;
+							when "011" =>
+								next_beatCounter <= (others => '0');
+								next_state <= disappear;
+							when "100" =>
+								next_beatCounter <= (others => '0');
+								next_state <= game_over;
+							when others =>
+								next_state <= settle;
+						end case;
+					else
+						note_index <= X"00";
+						next_beatCounter <= (others => '0'); 
+						next_state <= debounce;
+					end if;
 				when disappear =>
 					--C3, rest, G2
 					next_game_over_index <= (others => '0');
 					next_beat <= (others => '0');
 					case to_integer(beatCounter) is
 						when 0 to 10000000 =>
-							note_index <= X"1C";
-							next_beatCounter <= beatCounter + 1;
-							next_state <= disappear;
+							note_index <= X"1C";	
 						when 10000001 to 15000000 =>
 							note_index <= X"00";
-							next_beatCounter <= beatCounter + 1;
-							next_state <= disappear;
 						when 15000001 to 25000000 =>
 							note_index <= X"0A";
-							next_beatCounter <= beatCounter + 1;
-							next_state <= disappear;
 						when others =>
 							note_index <= X"00";
+					end case;
+					if sound_selector = "100" then
+						next_beatCounter <= (others => '0');
+						next_state <= game_over;
+					else
+						if beatCounter >= 25000000 then
 							next_beatCounter <= (others => '0');
 							next_state <= debounce;
-					end case;
+						else
+							next_beatCounter <= beatCounter + 1;
+							next_state <= disappear;
+						end if;
+					end if;
 				when game_over =>
 					if game_over_index >= X"F" then
 						next_state <= debounce;
 					else
-						next_state <= game_over;
-					end if;
-					note_index <= game_over_notes(to_integer(game_over_index));
-					if beatCounter >= 25000000 then
-						next_beat <= beat + 1;
-						next_beatCounter <= (others => '0');
-					end if; 
-					if beat > game_over_beats(to_integer(game_over_index)) then
-						next_beatCounter <= (others => '0');
-						next_beat <= X"0";
-						next_game_over_index <= game_over_index + 1;
-					else
-						next_beatCounter <= beatCounter + 1;
+						note_index <= game_over_notes(to_integer(game_over_index));
+						if beat > game_over_beats(to_integer(game_over_index)) then
+							next_beatCounter <= (others => '0');
+							next_beat <= X"0";
+							next_game_over_index <= game_over_index + 1;
+							next_state <= setdelay;
+						else
+							next_game_over_index <= game_over_index;
+							if beatCounter >= 10000000 then
+								next_beat <= beat + 1;
+								next_beatCounter <= (others => '0');
+							else
+								next_beatCounter <= beatCounter + 1;
+								next_state <= game_over;
+							end if;
+						end if;	
 					end if;
 				when debounce =>
 					next_beatCounter <= (others => '0');
@@ -313,6 +345,12 @@ begin
 					else
 						next_state <= idle;
 					end if;
+				when setdelay =>
+					next_state <= game_over;
+					next_beatCounter <= (others => '0');
+					next_beat <= X"0";
+					next_game_over_index <= game_over_index;
+					note_index <= note_index;
 			end case;
 		end if;
 	end process;
