@@ -108,6 +108,7 @@ architecture behavioral of controller2 is
     
     signal add_value : unsigned(3 downto 0) := X"0";
 	 signal next_add_value : unsigned(3 downto 0) := X"0";
+	 signal next_next_add_value : unsigned (3 downto 0) := X"0";
     signal accumulate : std_logic := '0';
 	 signal next_accumulate : std_logic := '0';
 
@@ -120,19 +121,23 @@ architecture behavioral of controller2 is
     signal block_disappear : std_logic := '0';
     signal next_block_disappear : std_logic := '0';
     signal game_over : std_logic := '0';
-	 signal next_game_over : std_logic := '0';
+    signal next_game_over : std_logic := '0';
 
     signal fall_timer : integer := 0;
     signal next_fall_timer : integer := 0;
 	 
-	 signal rand : std_logic_vector(3 downto 0);
-	 signal set_block : std_logic; 
+    signal rand : std_logic_vector(3 downto 0);
+    signal set_block : std_logic; 
 
     type row_positions_type is array(0 to 13) of unsigned(11 downto 0);
     signal row_positions : row_positions_type := (X"1B0", X"190", X"170", X"150", X"130", X"110", X"0F0", X"0D0", X"0B0", X"090", X"070", X"050", X"030", X"010");
 	 
-	 type MY_MEM is array(0 to 9) of unsigned(7 downto 0);
+    type MY_MEM is array(0 to 9) of unsigned(7 downto 0);
     signal sev_seg : MY_MEM := (X"C0", X"F9", X"A4", X"B0", X"99", X"92", X"83", X"F8", X"80", X"98");
+
+    type accumulate_state_type is (idle, lock, accumulate_s);
+    signal accumulate_state : accumulate_state_type := idle;
+    signal next_accumulate_state : accumulate_state_type := idle;
 
 begin
 	 
@@ -215,7 +220,8 @@ begin
             sound_selector <= "000";
             accumulate <= '0';
             block_disappear <= '0';
-				game_over <= '0';
+            game_over <= '0';
+            accumulate_state <= idle;
 				add_value <= X"0";
         else 
 			if rising_edge(MAX10_CLK1_50) then
@@ -225,15 +231,15 @@ begin
                 play_l <= next_play_l;
                 blockArray <= next_blockArray;
                 stack_heights <= next_stack_heights;
-					 falling_block <= next_falling_block;
-					 falling_block_y <= next_falling_block_y;
-					 col_move <= next_col_move;
+                falling_block <= next_falling_block;
+                falling_block_y <= next_falling_block_y;
+                col_move <= next_col_move;
                 sound_selector <= next_sound_selector;
                 accumulate <= next_accumulate;
                 block_disappear <= next_block_disappear;
-					 game_over <= next_game_over;
+                game_over <= next_game_over;
+                accumulate_state <= next_accumulate_state;
 					 add_value <= next_add_value;
-			
             else
                 state <= state;
                 falling_block_col <= falling_block_col;
@@ -241,12 +247,13 @@ begin
                 play_l <= play_l;
                 blockArray <= blockArray;
                 stack_heights <= stack_heights;
-					 falling_block <= falling_block;
-					 falling_block_y <= falling_block_y;
-					 col_move <= col_move;
+                falling_block <= falling_block;
+                falling_block_y <= falling_block_y;
+                col_move <= col_move;
                 accumulate <= accumulate;
                 block_disappear <= block_disappear;
-					 game_over <= game_over;
+                game_over <= game_over;
+                accumulate_state <= accumulate_state;
 					 add_value <= add_value;
             end if;
         end if;
@@ -419,32 +426,35 @@ begin
                     if stack_heights(to_integer(falling_block_col)) >= 12 then
 						      next_state <= gameover;
 						      next_game_over <= '1';
-					 else
+					else
+                        next_game_over <= '0';
 						next_state <= set;
 						set_block <= '1';
 					end if;
                else
+                    next_game_over <= '0';
                     next_state <= drop;
                     set_block <= '0';
-                    if fall_timer >= 170000 then--stack_speeds(to_integer(stack_heights(to_integer(falling_block_col)))) then
+                    if fall_timer >= 120000 then--stack_speeds(to_integer(stack_heights(to_integer(falling_block_col)))) then
                         next_falling_block_y <= falling_block_y + 1;
                         next_fall_timer <= 0;
                     else
                         next_fall_timer <= fall_timer + 1;
-                        
                     end if;
                 end if;
             when set =>
-					 set_block <= '0';
+                next_game_over <= '0';
+				set_block <= '0';
                 next_state <= drop;
                 next_falling_block <= unsigned(rand);
                 next_falling_block_y <= X"000";
             when gameover =>
-					 next_falling_block_y <= X"000";
-					 next_falling_block <= X"0";
+                set_block <= '0';
+                next_falling_block_y <= X"000";
+                next_falling_block <= X"0";
                 next_state <= gameover;
-					 next_fall_timer <= 0;
-					 next_game_over <= '0';
+                next_fall_timer <= 0;
+                next_game_over <= '0';
         end case;
     end process;
 
@@ -545,15 +555,27 @@ begin
             end loop;
             next_stack_heights(j) <= x;
         end loop;
-        next_add_value <= to_unsigned(score_modifier, 4);
+        next_next_add_value <= to_unsigned(score_modifier, 4);
     end process;
 	 
-	 process(add_value, next_add_value) begin
-		if add_value /= next_add_value and next_add_value /= 0 then
-			next_accumulate <= '1';
-		else
-			next_accumulate <= '0';
-		end if;
+	 process(add_value, next_add_value, accumulate_state) begin
+        case accumulate_state is
+            when idle =>
+                next_accumulate <= '0';
+                if add_value /= next_add_value and next_add_value /= 0 then
+						  next_add_value <= next_next_add_value;
+                    next_accumulate_state <= lock;
+                else
+						  next_add_value <= next_next_add_value;
+                    next_accumulate_state <= idle;
+                end if;
+            when lock =>
+                next_accumulate <= '1';
+                next_accumulate_state <= accumulate_s;
+            when accumulate_s =>
+                next_accumulate <= '0';
+                next_accumulate_state <= idle;
+        end case;
 	end process;
 	 
 end architecture behavioral;
